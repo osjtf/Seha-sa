@@ -65,6 +65,12 @@ if ($conn->connect_errno) {
   die("<div style='text-align:center;margin-top:50px;color:#c00;'>فشل الاتصال بقاعدة البيانات</div>");
 }
 
+$admin_username = '';
+$res = $conn->query("SELECT username FROM admins WHERE id=" . intval($_SESSION['admin_id']));
+if ($row = $res->fetch_assoc()) {
+  $admin_username = $row['username'];
+}
+
 // ==== 4. إنشاء الجداول إذا لم تكن موجودة ====
 $conn->query("CREATE TABLE IF NOT EXISTS patients (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -213,6 +219,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   if ($action === 'delete_patient') {
     $pid = intval($_POST['patient_id']);
     $conn->query("DELETE FROM patients WHERE id=$pid");
+    echo json_encode(['success' => true]);
+    exit;
+  }
+
+  // ==== 6.3 إدارة المشرفين ====
+  if ($action === 'add_admin') {
+    $uname = trim($_POST['admin_username']);
+    $pw = $_POST['admin_password'] ?? '';
+    if (!$uname || !$pw) {
+      echo json_encode(['success' => false, 'message' => 'أدخل اسم المستخدم وكلمة المرور']);
+      exit;
+    }
+    $stmt = $conn->prepare("INSERT INTO admins (username, password) VALUES (?, ?)");
+    $hash = password_hash($pw, PASSWORD_DEFAULT);
+    $stmt->bind_param("ss", $uname, $hash);
+    $stmt->execute();
+    $aid = $stmt->insert_id;
+    $stmt->close();
+    $row = $conn->query("SELECT id, username FROM admins WHERE id=$aid")->fetch_assoc();
+    echo json_encode(['success' => true, 'admin' => $row]);
+    exit;
+  }
+  if ($action === 'edit_admin') {
+    $aid = intval($_POST['admin_id']);
+    $uname = trim($_POST['admin_username']);
+    $pw = $_POST['admin_password'] ?? '';
+    if (!$uname) {
+      echo json_encode(['success' => false, 'message' => 'أدخل اسم المستخدم']);
+      exit;
+    }
+    if ($pw !== '') {
+      $hash = password_hash($pw, PASSWORD_DEFAULT);
+      $stmt = $conn->prepare("UPDATE admins SET username=?, password=? WHERE id=?");
+      $stmt->bind_param("ssi", $uname, $hash, $aid);
+    } else {
+      $stmt = $conn->prepare("UPDATE admins SET username=? WHERE id=?");
+      $stmt->bind_param("si", $uname, $aid);
+    }
+    $stmt->execute();
+    $stmt->close();
+    $row = $conn->query("SELECT id, username FROM admins WHERE id=$aid")->fetch_assoc();
+    echo json_encode(['success' => true, 'admin' => $row]);
+    exit;
+  }
+  if ($action === 'delete_admin') {
+    $aid = intval($_POST['admin_id']);
+    $conn->query("DELETE FROM admins WHERE id=$aid");
     echo json_encode(['success' => true]);
     exit;
   }
@@ -523,7 +576,8 @@ $stats = [
   'active' => 0,
   'archived' => 0,
   'doctors' => 0,
-  'patients' => 0
+  'patients' => 0,
+  'admins' => 0
 ];
 $res = $conn->query("SELECT COUNT(*) as c FROM sick_leaves WHERE is_deleted=0");
 $stats['active'] = $res->fetch_assoc()['c'];
@@ -535,6 +589,8 @@ $res = $conn->query("SELECT COUNT(*) as c FROM doctors");
 $stats['doctors'] = $res->fetch_assoc()['c'];
 $res = $conn->query("SELECT COUNT(*) as c FROM patients");
 $stats['patients'] = $res->fetch_assoc()['c'];
+$res = $conn->query("SELECT COUNT(*) as c FROM admins");
+$stats['admins'] = $res->fetch_assoc()['c'];
 
 // ==== 8. جلب قوائم المرضى والأطباء لعرضها في <select> ====
 $patients = [];
@@ -547,6 +603,12 @@ $doctors = [];
 $res = $conn->query("SELECT id, name, title FROM doctors ORDER BY name ASC");
 while ($row = $res->fetch_assoc()) {
   $doctors[] = $row;
+}
+
+$admins = [];
+$res = $conn->query("SELECT id, username FROM admins ORDER BY id ASC");
+while ($row = $res->fetch_assoc()) {
+  $admins[] = $row;
 }
 
 // ==== 9. جلب بيانات الإجازات النشطة (للجدول الرئيسي) ====
@@ -900,6 +962,10 @@ while ($row = $res->fetch_assoc()) {
       .table-responsive {
         overflow-x: auto;
       }
+      .action-btn {
+        font-size: 0.75rem;
+        padding: 2px 4px;
+      }
     }
   </style>
 </head>
@@ -907,6 +973,18 @@ while ($row = $res->fetch_assoc()) {
 <body>
   <!-- زر تبديل الوضع الداكن/الفاتح -->
   <button id="darkModeToggle"><i class="bi bi-moon-fill"></i> داكن</button>
+
+  <nav class="navbar navbar-light bg-light mb-2">
+    <div class="container-fluid justify-content-end">
+      <button class="btn btn-light position-relative me-2" data-bs-toggle="offcanvas" data-bs-target="#notificationsPane">
+        <i class="bi bi-bell"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifCount">0</span>
+      </button>
+      <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#profileModal">
+        <i class="bi bi-person-circle"></i> <?= htmlspecialchars($admin_username) ?>
+      </button>
+    </div>
+  </nav>
 
   <!-- حاوية الإشعارات (Toast-like) -->
   <div id="alert-container"></div>
@@ -933,6 +1011,30 @@ while ($row = $res->fetch_assoc()) {
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
           <button type="button" class="btn btn-danger-custom" id="confirmYesBtn">تأكيد</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- لوحة الإشعارات -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsPane">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">الإشعارات</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <ul id="notificationsList" class="list-group list-group-flush">
+        <li class="list-group-item text-center">لا إشعارات</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- الملف الشخصي -->
+  <div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 text-center">
+        <h5 class="mb-2">الملف الشخصي</h5>
+        <p>المستخدم: <?= htmlspecialchars($admin_username) ?></p>
+        <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">إغلاق</button>
       </div>
     </div>
   </div>
@@ -979,6 +1081,7 @@ while ($row = $res->fetch_assoc()) {
       <div class="col stats-box">أرشيف<br><?= $stats['archived'] ?></div>
       <div class="col stats-box">المرضى<br><?= $stats['patients'] ?></div>
       <div class="col stats-box">الأطباء<br><?= $stats['doctors'] ?></div>
+      <div class="col stats-box">المشرفون<br><?= $stats['admins'] ?></div>
     </div>
 
     <!-- ملخص المدفوعات -->
@@ -1025,6 +1128,9 @@ while ($row = $res->fetch_assoc()) {
       </button>
       <button class="btn btn-gradient btn-sm" data-bs-toggle="modal" data-bs-target="#patientsModal">
         <i class="bi bi-person-lines-fill"></i> إدارة المرضى
+      </button>
+      <button class="btn btn-gradient btn-sm" data-bs-toggle="modal" data-bs-target="#adminsModal">
+        <i class="bi bi-shield-lock-fill"></i> إدارة المشرفين
       </button>
       <button class="btn btn-gradient btn-sm" data-bs-toggle="collapse" data-bs-target="#queriesSection">
         <i class="bi bi-journal-text"></i> سجل الاستعلامات
@@ -1556,9 +1662,9 @@ while ($row = $res->fetch_assoc()) {
           </form>
         </div>
       </div>
-    </div>
+  </div>
 
-    <!-- نافذة إدارة المرضى -->
+  <!-- نافذة إدارة المرضى -->
     <div class="modal fade" id="patientsModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content p-3">
@@ -1622,9 +1728,68 @@ while ($row = $res->fetch_assoc()) {
           </form>
         </div>
       </div>
-    </div>
+  </div>
 
-    <!-- نافذة تعديل إجازة -->
+  <!-- نافذة إدارة المشرفين -->
+  <div class="modal fade" id="adminsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content p-3">
+        <h5>قائمة المشرفين
+          <button class="btn btn-success-custom btn-sm float-end" id="btn-show-add-admin">
+            <i class="bi bi-plus-circle"></i> إضافة
+          </button>
+        </h5>
+        <div class="input-group mb-2">
+          <input type="text" id="searchAdminsTable" class="form-control" placeholder="ابحث باسم المستخدم">
+          <button class="btn btn-primary" type="button" id="btn-search-admins"><i class="bi bi-search"></i> بحث</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center" id="adminsTable">
+            <thead>
+              <tr>
+                <th>رقم</th>
+                <th>اسم المستخدم</th>
+                <th>تحكم</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($admins as $ad): ?>
+                <tr data-id="<?= $ad['id'] ?>">
+                  <td class="row-num"></td>
+                  <td><?= htmlspecialchars($ad['username']) ?></td>
+                  <td>
+                    <button class="btn btn-warning btn-sm action-btn btn-edit-admin"><i class="bi bi-pencil-square"></i> تعديل</button>
+                    <button class="btn btn-danger btn-sm action-btn btn-delete-admin"><i class="bi bi-trash-fill"></i> حذف</button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if (empty($admins)): ?>
+                <!-- no rows message handled by DataTables -->
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+        <form class="row g-2 mt-3 needs-validation" id="adminForm" style="display:none;" novalidate>
+          <?= csrf_input(); ?>
+          <input type="hidden" id="admin_form_id" name="admin_id">
+          <div class="col-md-5">
+            <input type="text" id="admin_form_username" name="admin_username" class="form-control" placeholder="اسم المستخدم" required>
+            <div class="invalid-feedback">أدخل اسم المستخدم.</div>
+          </div>
+          <div class="col-md-5">
+            <input type="password" id="admin_form_password" name="admin_password" class="form-control" placeholder="كلمة المرور">
+            <div class="invalid-feedback">أدخل كلمة المرور.</div>
+          </div>
+          <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-success-custom w-100"><i class="bi bi-save-fill"></i> حفظ</button>
+            <button type="button" class="btn btn-secondary w-100" id="btn-cancel-admin"><i class="bi bi-x-circle"></i> إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل إجازة -->
     <div class="modal fade" id="editLeaveModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content p-3">
@@ -1731,6 +1896,7 @@ while ($row = $res->fetch_assoc()) {
         $('#archivedTable').DataTable(dtOpts);
         $('#queriesTable').DataTable(dtOpts);
         $('#paymentsTable').DataTable(dtOpts);
+        $('#adminsTable').DataTable(dtOpts);
       }
 
       // تنبيه للمدفوعات المتأخرة
@@ -2280,6 +2446,98 @@ while ($row = $res->fetch_assoc()) {
 
       // ==== 21. البحث في جدول المرضى ====
       filterTable('patientsTable', 'searchPatientsTable', 'btn-search-patients', [1, 2]);
+
+      // ==== 21.1 إدارة المشرفين ====
+      const btnShowAddAdmin = document.getElementById('btn-show-add-admin');
+      const btnCancelAdmin = document.getElementById('btn-cancel-admin');
+      const adminForm = document.getElementById('adminForm');
+      const adminsBody = document.querySelector('#adminsTable tbody');
+      let originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
+
+      btnShowAddAdmin.addEventListener('click', () => {
+        adminForm.reset();
+        document.getElementById('admin_form_id').value = '';
+        adminForm.style.display = 'flex';
+        adminForm.classList.remove('was-validated');
+      });
+
+      btnCancelAdmin.addEventListener('click', () => {
+        adminForm.style.display = 'none';
+        adminForm.classList.remove('was-validated');
+      });
+
+      adminForm.addEventListener('submit', e => {
+        e.preventDefault();
+        if (!adminForm.checkValidity()) return;
+        const formData = new FormData(adminForm);
+        const isEdit = document.getElementById('admin_form_id').value !== '';
+        formData.append('action', isEdit ? 'edit_admin' : 'add_admin');
+        showLoading();
+        fetch('', { method: 'POST', body: formData })
+          .then(r => r.json()).then(data => {
+            hideLoading();
+            if (data.success) {
+              showAlert('success', isEdit ? 'تم تحديث المشرف' : 'تم إضافة المشرف');
+              const ad = data.admin;
+              if (isEdit) {
+                const row = document.querySelector(`#adminsTable tr[data-id="${ad.id}"]`);
+                if (row) row.children[1].textContent = ad.username;
+              } else {
+                const newRow = document.createElement('tr');
+                newRow.setAttribute('data-id', ad.id);
+                newRow.innerHTML = `
+                  <td class="row-num"></td>
+                  <td>${ad.username}</td>
+                  <td>
+                    <button class="btn btn-warning btn-sm action-btn btn-edit-admin"><i class="bi bi-pencil-square"></i> تعديل</button>
+                    <button class="btn btn-danger btn-sm action-btn btn-delete-admin"><i class="bi bi-trash-fill"></i> حذف</button>
+                  </td>`;
+                adminsBody.prepend(newRow);
+                attachAdminRowEvents(newRow);
+              }
+              adminForm.style.display = 'none';
+              reIndexTable('adminsTable');
+              originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
+            } else {
+              showAlert('danger', data.message);
+            }
+          });
+      });
+
+      function attachAdminRowEvents(row) {
+        row.querySelector('.btn-edit-admin').addEventListener('click', () => {
+          const id = row.getAttribute('data-id');
+          document.getElementById('admin_form_id').value = id;
+          document.getElementById('admin_form_username').value = row.children[1].textContent.trim();
+          document.getElementById('admin_form_password').value = '';
+          adminForm.style.display = 'flex';
+          adminForm.classList.remove('was-validated');
+        });
+        row.querySelector('.btn-delete-admin').addEventListener('click', () => {
+          const id = row.getAttribute('data-id');
+          showConfirm('هل أنت متأكد من حذف المشرف؟', () => {
+            const fd = new FormData();
+            fd.append('action', 'delete_admin');
+            fd.append('admin_id', id);
+            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+            showLoading();
+            fetch('', { method: 'POST', body: fd })
+              .then(r => r.json()).then(data => {
+                hideLoading();
+                if (data.success) {
+                  showAlert('success', 'تم حذف المشرف');
+                  row.remove();
+                  reIndexTable('adminsTable');
+                  originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
+                }
+              });
+          });
+        });
+      }
+      document.querySelectorAll('#adminsTable tbody tr').forEach(attachAdminRowEvents);
+      reIndexTable('adminsTable');
+
+      filterTable('adminsTable', 'searchAdminsTable', 'btn-search-admins', [1]);
 
       // ==== 22. إضافة إجازة جديدة ====
       const leaveForm = document.getElementById('leaveForm');
