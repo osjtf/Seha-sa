@@ -65,6 +65,12 @@ if ($conn->connect_errno) {
   die("<div style='text-align:center;margin-top:50px;color:#c00;'>فشل الاتصال بقاعدة البيانات</div>");
 }
 
+$admin_username = '';
+$res = $conn->query("SELECT username FROM admins WHERE id=" . intval($_SESSION['admin_id']));
+if ($row = $res->fetch_assoc()) {
+  $admin_username = $row['username'];
+}
+
 // ==== 4. إنشاء الجداول إذا لم تكن موجودة ====
 $conn->query("CREATE TABLE IF NOT EXISTS patients (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -213,6 +219,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
   if ($action === 'delete_patient') {
     $pid = intval($_POST['patient_id']);
     $conn->query("DELETE FROM patients WHERE id=$pid");
+    echo json_encode(['success' => true]);
+    exit;
+  }
+
+  // ==== 6.3 إدارة المشرفين ====
+  if ($action === 'add_admin') {
+    $uname = trim($_POST['admin_username']);
+    $pw = $_POST['admin_password'] ?? '';
+    if (!$uname || !$pw) {
+      echo json_encode(['success' => false, 'message' => 'أدخل اسم المستخدم وكلمة المرور']);
+      exit;
+    }
+    $stmt = $conn->prepare("INSERT INTO admins (username, password) VALUES (?, ?)");
+    $hash = password_hash($pw, PASSWORD_DEFAULT);
+    $stmt->bind_param("ss", $uname, $hash);
+    $stmt->execute();
+    $aid = $stmt->insert_id;
+    $stmt->close();
+    $row = $conn->query("SELECT id, username FROM admins WHERE id=$aid")->fetch_assoc();
+    echo json_encode(['success' => true, 'admin' => $row]);
+    exit;
+  }
+  if ($action === 'edit_admin') {
+    $aid = intval($_POST['admin_id']);
+    $uname = trim($_POST['admin_username']);
+    $pw = $_POST['admin_password'] ?? '';
+    if (!$uname) {
+      echo json_encode(['success' => false, 'message' => 'أدخل اسم المستخدم']);
+      exit;
+    }
+    if ($pw !== '') {
+      $hash = password_hash($pw, PASSWORD_DEFAULT);
+      $stmt = $conn->prepare("UPDATE admins SET username=?, password=? WHERE id=?");
+      $stmt->bind_param("ssi", $uname, $hash, $aid);
+    } else {
+      $stmt = $conn->prepare("UPDATE admins SET username=? WHERE id=?");
+      $stmt->bind_param("si", $uname, $aid);
+    }
+    $stmt->execute();
+    $stmt->close();
+    $row = $conn->query("SELECT id, username FROM admins WHERE id=$aid")->fetch_assoc();
+    echo json_encode(['success' => true, 'admin' => $row]);
+    exit;
+  }
+  if ($action === 'delete_admin') {
+    $aid = intval($_POST['admin_id']);
+    $conn->query("DELETE FROM admins WHERE id=$aid");
     echo json_encode(['success' => true]);
     exit;
   }
@@ -458,6 +511,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     exit;
   }
 
+  // ==== 6.7.1 تحديد الإجازة كمدفوعة ====
+  if ($action === 'mark_paid') {
+    $lid = intval($_POST['leave_id']);
+    $conn->query("UPDATE sick_leaves SET is_paid=1, updated_at=NOW() WHERE id=$lid");
+    echo json_encode(['success' => true]);
+    exit;
+  }
+
   // ==== 6.8 حذف جميع الإجازات المؤرشفة ====
   if ($action === 'force_delete_all_archived') {
     $conn->query("DELETE FROM sick_leaves WHERE is_deleted=1");
@@ -523,7 +584,10 @@ $stats = [
   'active' => 0,
   'archived' => 0,
   'doctors' => 0,
-  'patients' => 0
+  'patients' => 0,
+  'admins' => 0,
+  'paid' => 0,
+  'unpaid' => 0
 ];
 $res = $conn->query("SELECT COUNT(*) as c FROM sick_leaves WHERE is_deleted=0");
 $stats['active'] = $res->fetch_assoc()['c'];
@@ -535,6 +599,12 @@ $res = $conn->query("SELECT COUNT(*) as c FROM doctors");
 $stats['doctors'] = $res->fetch_assoc()['c'];
 $res = $conn->query("SELECT COUNT(*) as c FROM patients");
 $stats['patients'] = $res->fetch_assoc()['c'];
+$res = $conn->query("SELECT COUNT(*) as c FROM admins");
+$stats['admins'] = $res->fetch_assoc()['c'];
+$res = $conn->query("SELECT SUM(is_paid=1) AS paid, SUM(is_paid=0) AS unpaid FROM sick_leaves WHERE is_deleted=0");
+$row = $res->fetch_assoc();
+$stats['paid'] = $row['paid'];
+$stats['unpaid'] = $row['unpaid'];
 
 // ==== 8. جلب قوائم المرضى والأطباء لعرضها في <select> ====
 $patients = [];
@@ -547,6 +617,12 @@ $doctors = [];
 $res = $conn->query("SELECT id, name, title FROM doctors ORDER BY name ASC");
 while ($row = $res->fetch_assoc()) {
   $doctors[] = $row;
+}
+
+$admins = [];
+$res = $conn->query("SELECT id, username FROM admins ORDER BY id ASC");
+while ($row = $res->fetch_assoc()) {
+  $admins[] = $row;
 }
 
 // ==== 9. جلب بيانات الإجازات النشطة (للجدول الرئيسي) ====
@@ -609,6 +685,18 @@ $res = $conn->query("SELECT p.id, p.name, p.identity_number,
                      ORDER BY p.name ASC");
 while ($row = $res->fetch_assoc()) {
   $payments[] = $row;
+}
+
+// قوائم للإشعارات في الواجهة (الإجازات غير المدفوعة والاستعلامات الجديدة)
+$unpaid_js = [];
+foreach ($leaves as $lv) {
+  if (!$lv['is_paid']) {
+    $unpaid_js[] = ['id' => $lv['id'], 'code' => $lv['service_code']];
+  }
+}
+$query_notifs = [];
+foreach ($queries as $q) {
+  $query_notifs[] = ['id' => $q['qid'], 'code' => $q['service_code'], 'leave_id' => $q['leave_id']];
 }
 ?>
 <!DOCTYPE html>
@@ -778,7 +866,7 @@ while ($row = $res->fetch_assoc()) {
     }
 
     .stats-box {
-      background: var(--primary-color);
+      background: linear-gradient(135deg, var(--primary-color), #63b0ff);
       color: #fff;
       border-radius: var(--border-radius);
       padding: 12px 6px;
@@ -900,6 +988,13 @@ while ($row = $res->fetch_assoc()) {
       .table-responsive {
         overflow-x: auto;
       }
+      .action-btn {
+        font-size: 0.75rem;
+        padding: 2px 4px;
+        display: block;
+        width: 100%;
+        margin-bottom: 4px;
+      }
     }
   </style>
 </head>
@@ -907,6 +1002,18 @@ while ($row = $res->fetch_assoc()) {
 <body>
   <!-- زر تبديل الوضع الداكن/الفاتح -->
   <button id="darkModeToggle"><i class="bi bi-moon-fill"></i> داكن</button>
+
+  <nav class="navbar navbar-light bg-light mb-2">
+    <div class="container-fluid justify-content-end">
+      <button class="btn btn-light position-relative me-2" data-bs-toggle="offcanvas" data-bs-target="#notificationsPane">
+        <i class="bi bi-bell"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notifCount">0</span>
+      </button>
+      <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#profileModal">
+        <i class="bi bi-person-circle"></i> <?= htmlspecialchars($admin_username) ?>
+      </button>
+    </div>
+  </nav>
 
   <!-- حاوية الإشعارات (Toast-like) -->
   <div id="alert-container"></div>
@@ -933,6 +1040,37 @@ while ($row = $res->fetch_assoc()) {
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
           <button type="button" class="btn btn-danger-custom" id="confirmYesBtn">تأكيد</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- لوحة الإشعارات -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsPane">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">الإشعارات</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="mb-2 d-flex justify-content-between align-items-center">
+        <span>إشعارات المدفوعات</span>
+        <button class="btn btn-sm btn-light" id="clearPaymentNotifs">مسح الكل</button>
+      </div>
+      <ul id="paymentNotifications" class="list-group mb-3"></ul>
+      <div class="mb-2 d-flex justify-content-between align-items-center">
+        <span>إشعارات الاستعلامات</span>
+        <button class="btn btn-sm btn-light" id="clearQueryNotifs">مسح الكل</button>
+      </div>
+      <ul id="queryNotifications" class="list-group"></ul>
+    </div>
+  </div>
+
+  <!-- الملف الشخصي -->
+  <div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-3 text-center">
+        <h5 class="mb-2">الملف الشخصي</h5>
+        <p>المستخدم: <?= htmlspecialchars($admin_username) ?></p>
+        <button type="button" class="btn btn-secondary mt-2" data-bs-dismiss="modal">إغلاق</button>
       </div>
     </div>
   </div>
@@ -974,11 +1112,14 @@ while ($row = $res->fetch_assoc()) {
   <div class="container-fluid py-2">
     <!-- إحصائيات سريعة -->
     <div class="row g-2 mb-3">
-      <div class="col stats-box">إجمالي الإجازات<br><?= $stats['total'] ?></div>
+      <div class="col stats-box">إجمالي<br><?= $stats['total'] ?></div>
       <div class="col stats-box">نشطة<br><?= $stats['active'] ?></div>
+      <div class="col stats-box">مدفوعة<br><?= $stats['paid'] ?></div>
+      <div class="col stats-box">غير مدفوعة<br><?= $stats['unpaid'] ?></div>
       <div class="col stats-box">أرشيف<br><?= $stats['archived'] ?></div>
       <div class="col stats-box">المرضى<br><?= $stats['patients'] ?></div>
       <div class="col stats-box">الأطباء<br><?= $stats['doctors'] ?></div>
+      <div class="col stats-box">المشرفون<br><?= $stats['admins'] ?></div>
     </div>
 
     <!-- ملخص المدفوعات -->
@@ -1025,6 +1166,9 @@ while ($row = $res->fetch_assoc()) {
       </button>
       <button class="btn btn-gradient btn-sm" data-bs-toggle="modal" data-bs-target="#patientsModal">
         <i class="bi bi-person-lines-fill"></i> إدارة المرضى
+      </button>
+      <button class="btn btn-gradient btn-sm" data-bs-toggle="modal" data-bs-target="#adminsModal">
+        <i class="bi bi-shield-lock-fill"></i> إدارة المشرفين
       </button>
       <button class="btn btn-gradient btn-sm" data-bs-toggle="collapse" data-bs-target="#queriesSection">
         <i class="bi bi-journal-text"></i> سجل الاستعلامات
@@ -1283,9 +1427,7 @@ while ($row = $res->fetch_assoc()) {
                 </tr>
               <?php endforeach; ?>
               <?php if (empty($leaves)): ?>
-                <tr class="no-results">
-                  <td colspan="16">لا توجد إجازات نشطة حاليًا.</td>
-                </tr>
+                <!-- no rows message handled by DataTables -->
               <?php endif; ?>
             </tbody>
           </table>
@@ -1369,9 +1511,7 @@ while ($row = $res->fetch_assoc()) {
             </thead>
             <tbody>
               <?php if (empty($archived)): ?>
-                <tr class="no-results">
-                  <td colspan="16">لا توجد إجازات في الأرشيف.</td>
-                </tr>
+                <!-- no rows message handled by DataTables -->
               <?php else: ?>
                 <?php foreach ($archived as $idx => $lv): ?>
                   <tr data-id="<?= $lv['id'] ?>" data-comp-name="<?= htmlspecialchars($lv['companion_name']) ?>"
@@ -1472,9 +1612,7 @@ while ($row = $res->fetch_assoc()) {
               </thead>
               <tbody>
                 <?php if (empty($queries)): ?>
-                  <tr class="no-results">
-                    <td colspan="6">لا توجد سجلات للاستعلام.</td>
-                  </tr>
+                  <!-- no rows message handled by DataTables -->
                 <?php else: ?>
                   <?php foreach ($queries as $idx => $q): ?>
                     <tr data-id="<?= $q['qid'] ?>">
@@ -1536,9 +1674,7 @@ while ($row = $res->fetch_assoc()) {
                   </tr>
                 <?php endforeach; ?>
                 <?php if (empty($doctors)): ?>
-                  <tr class="no-results">
-                    <td colspan="4">لا يوجد أطباء حاليًا.</td>
-                  </tr>
+                  <!-- no rows message handled by DataTables -->
                 <?php endif; ?>
               </tbody>
             </table>
@@ -1564,9 +1700,9 @@ while ($row = $res->fetch_assoc()) {
           </form>
         </div>
       </div>
-    </div>
+  </div>
 
-    <!-- نافذة إدارة المرضى -->
+  <!-- نافذة إدارة المرضى -->
     <div class="modal fade" id="patientsModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content p-3">
@@ -1604,9 +1740,7 @@ while ($row = $res->fetch_assoc()) {
                   </tr>
                 <?php endforeach; ?>
                 <?php if (empty($patients)): ?>
-                  <tr class="no-results">
-                    <td colspan="4">لا يوجد مرضى حاليًا.</td>
-                  </tr>
+                  <!-- no rows message handled by DataTables -->
                 <?php endif; ?>
               </tbody>
             </table>
@@ -1632,9 +1766,68 @@ while ($row = $res->fetch_assoc()) {
           </form>
         </div>
       </div>
-    </div>
+  </div>
 
-    <!-- نافذة تعديل إجازة -->
+  <!-- نافذة إدارة المشرفين -->
+  <div class="modal fade" id="adminsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content p-3">
+        <h5>قائمة المشرفين
+          <button class="btn btn-success-custom btn-sm float-end" id="btn-show-add-admin">
+            <i class="bi bi-plus-circle"></i> إضافة
+          </button>
+        </h5>
+        <div class="input-group mb-2">
+          <input type="text" id="searchAdminsTable" class="form-control" placeholder="ابحث باسم المستخدم">
+          <button class="btn btn-primary" type="button" id="btn-search-admins"><i class="bi bi-search"></i> بحث</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center" id="adminsTable">
+            <thead>
+              <tr>
+                <th>رقم</th>
+                <th>اسم المستخدم</th>
+                <th>تحكم</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($admins as $ad): ?>
+                <tr data-id="<?= $ad['id'] ?>">
+                  <td class="row-num"></td>
+                  <td><?= htmlspecialchars($ad['username']) ?></td>
+                  <td>
+                    <button class="btn btn-warning btn-sm action-btn btn-edit-admin"><i class="bi bi-pencil-square"></i> تعديل</button>
+                    <button class="btn btn-danger btn-sm action-btn btn-delete-admin"><i class="bi bi-trash-fill"></i> حذف</button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+              <?php if (empty($admins)): ?>
+                <!-- no rows message handled by DataTables -->
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+        <form class="row g-2 mt-3 needs-validation" id="adminForm" style="display:none;" novalidate>
+          <?= csrf_input(); ?>
+          <input type="hidden" id="admin_form_id" name="admin_id">
+          <div class="col-md-5">
+            <input type="text" id="admin_form_username" name="admin_username" class="form-control" placeholder="اسم المستخدم" required>
+            <div class="invalid-feedback">أدخل اسم المستخدم.</div>
+          </div>
+          <div class="col-md-5">
+            <input type="password" id="admin_form_password" name="admin_password" class="form-control" placeholder="كلمة المرور">
+            <div class="invalid-feedback">أدخل كلمة المرور.</div>
+          </div>
+          <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-success-custom w-100"><i class="bi bi-save-fill"></i> حفظ</button>
+            <button type="button" class="btn btn-secondary w-100" id="btn-cancel-admin"><i class="bi bi-x-circle"></i> إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل إجازة -->
     <div class="modal fade" id="editLeaveModal" tabindex="-1">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content p-3">
@@ -1731,27 +1924,41 @@ while ($row = $res->fetch_assoc()) {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <script>
+    const unpaidForJS = <?= json_encode($unpaid_js, JSON_UNESCAPED_UNICODE) ?>;
+    const queryNotifsData = <?= json_encode($query_notifs, JSON_UNESCAPED_UNICODE) ?>;
+  </script>
+
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       // تفعيل DataTables
+      let leavesDt, archivedDt, queriesDt, paymentsDt, adminsDt;
       if (window.jQuery && $.fn.DataTable) {
         const dtOpts = { paging: true, searching: false, info: false, responsive: true,
           language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json' }
         };
-        $('#leavesTable').DataTable(dtOpts);
-        $('#archivedTable').DataTable(dtOpts);
-        $('#queriesTable').DataTable(dtOpts);
-        $('#paymentsTable').DataTable(dtOpts);
+        leavesDt = $('#leavesTable').DataTable(dtOpts);
+        archivedDt = $('#archivedTable').DataTable(dtOpts);
+        queriesDt = $('#queriesTable').DataTable(dtOpts);
+        paymentsDt = $('#paymentsTable').DataTable(dtOpts);
+        adminsDt = $('#adminsTable').DataTable(dtOpts);
       }
 
-      // تنبيه للمدفوعات المتأخرة
+      // إدراج الإشعارات المبدئية من المتغيرات الآتية
+      unpaidForJS.forEach(item => {
+        const row = document.querySelector(`#leavesTable tr[data-id="${item.id}"]`);
+        if (row) addPaymentNotification(item.id, item.code, row);
+      });
+      queryNotifsData.forEach(q => {
+        addQueryNotification(q.code, q.leave_id);
+      });
+
+      // تنبيه للإجازات غير المدفوعة بعد دقيقتين (إلى لوحة الإشعارات فقط)
       document.querySelectorAll('#leavesTable tbody tr').forEach(row => {
         const paid = row.querySelector('.cell-paid-status .badge.bg-success');
         const createdCell = row.querySelector('.cell-created');
         if (!paid && createdCell) {
-          const created = new Date(createdCell.textContent.split(' ')[0]);
-          if (Date.now() - created.getTime() > 24 * 3600 * 1000) {
-            showAlert('warning', 'إجازة برمز ' + row.querySelector('.cell-service').textContent + ' لم يتم دفعها بعد مرور يوم');
-          }
+          const created = new Date(createdCell.textContent);
+          scheduleUnpaidNotification(row, created);
         }
       });
       // ===== دالة عرض الإشعار (SweetAlert2) =====
@@ -1766,6 +1973,64 @@ while ($row = $res->fetch_assoc()) {
             title: message,
           });
         }
+      }
+
+      const paymentList = document.getElementById('paymentNotifications');
+      const queryList = document.getElementById('queryNotifications');
+
+      function updateNotifCount() {
+        const c = paymentList.children.length + queryList.children.length;
+        document.getElementById('notifCount').textContent = c;
+      }
+
+      function addPaymentNotification(id, code, row) {
+        const li = document.createElement('li');
+        li.dataset.id = id;
+        li.dataset.code = code;
+        li.className = 'list-group-item';
+        li.innerHTML = `<div class="d-flex justify-content-between align-items-center">
+          <span>الإجازة ${code} غير مدفوعة</span>
+          <div>
+            <button class="btn btn-success btn-sm me-1 btn-pay-notif">تسديد</button>
+            <button class="btn btn-secondary btn-sm btn-remind-notif">تذكير</button>
+          </div>
+        </div>`;
+        paymentList.prepend(li);
+        updateNotifCount();
+      }
+
+      function addQueryNotification(code, leaveId) {
+        const li = document.createElement('li');
+        li.dataset.leaveId = leaveId;
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `<span>استعلام جديد للإجازة ${code}</span>
+          <button class="btn btn-info btn-sm btn-view-notif">عرض</button>`;
+        queryList.prepend(li);
+        updateNotifCount();
+      }
+
+      function markLeavePaid(id, row) {
+        const fd = new FormData();
+        fd.append('action', 'mark_paid');
+        fd.append('leave_id', id);
+        fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+        showLoading();
+        fetch('', { method: 'POST', body: fd })
+          .then(r => r.json()).then(res => {
+            hideLoading();
+            if (res.success) {
+              row.querySelector('.cell-paid-status').innerHTML = '<span class="badge bg-success">مدفوع</span>';
+              showAlert('success', 'تم تحديث حالة الدفع');
+            }
+          });
+      }
+
+      function scheduleUnpaidNotification(row, created) {
+        const now = Date.now();
+        const id = row.getAttribute('data-id');
+        const code = row.querySelector('.cell-service').textContent.trim();
+        const delay = Math.max(0, 2 * 60 * 1000 - (now - created.getTime()));
+        setTimeout(() => addPaymentNotification(id, code, row), delay);
       }
 
       // ===== إظهار/إخفاء مؤشر التحميل =====
@@ -2159,11 +2424,6 @@ while ($row = $res->fetch_assoc()) {
             if (match) anyVisible = true;
           });
           if (!anyVisible) {
-            const colCount = table.querySelectorAll('thead th').length;
-            const noRow = document.createElement('tr');
-            noRow.classList.add(noResultsClass);
-            noRow.innerHTML = `<td colspan="${colCount}" class="no-results">لم يتم العثور على نتائج مطابقة.</td>`;
-            tbody.append(noRow);
             showAlert('warning', 'لا توجد نتائج مطابقة');
           } else {
             showAlert('success', 'تم العثور على نتائج');
@@ -2296,6 +2556,193 @@ while ($row = $res->fetch_assoc()) {
       // ==== 21. البحث في جدول المرضى ====
       filterTable('patientsTable', 'searchPatientsTable', 'btn-search-patients', [1, 2]);
 
+      // ==== 21.1 إدارة المشرفين ====
+      const btnShowAddAdmin = document.getElementById('btn-show-add-admin');
+      const btnCancelAdmin = document.getElementById('btn-cancel-admin');
+      const adminForm = document.getElementById('adminForm');
+      const adminsBody = document.querySelector('#adminsTable tbody');
+      let originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
+
+      btnShowAddAdmin.addEventListener('click', () => {
+        adminForm.reset();
+        document.getElementById('admin_form_id').value = '';
+        adminForm.style.display = 'flex';
+        adminForm.classList.remove('was-validated');
+      });
+
+      btnCancelAdmin.addEventListener('click', () => {
+        adminForm.style.display = 'none';
+        adminForm.classList.remove('was-validated');
+      });
+
+      adminForm.addEventListener('submit', e => {
+        e.preventDefault();
+        if (!adminForm.checkValidity()) return;
+        const formData = new FormData(adminForm);
+        const isEdit = document.getElementById('admin_form_id').value !== '';
+        formData.append('action', isEdit ? 'edit_admin' : 'add_admin');
+        showLoading();
+        fetch('', { method: 'POST', body: formData })
+          .then(r => r.json()).then(data => {
+            hideLoading();
+            if (data.success) {
+              showAlert('success', isEdit ? 'تم تحديث المشرف' : 'تم إضافة المشرف');
+              const ad = data.admin;
+              if (isEdit) {
+                const row = document.querySelector(`#adminsTable tr[data-id="${ad.id}"]`);
+                if (row) row.children[1].textContent = ad.username;
+              } else {
+                const newRow = document.createElement('tr');
+                newRow.setAttribute('data-id', ad.id);
+                newRow.innerHTML = `
+                  <td class="row-num"></td>
+                  <td>${ad.username}</td>
+                  <td>
+                    <button class="btn btn-warning btn-sm action-btn btn-edit-admin"><i class="bi bi-pencil-square"></i> تعديل</button>
+                    <button class="btn btn-danger btn-sm action-btn btn-delete-admin"><i class="bi bi-trash-fill"></i> حذف</button>
+                  </td>`;
+                if (adminsDt) {
+                  adminsDt.row.add(newRow).draw(false);
+                } else {
+                  adminsBody.prepend(newRow);
+                }
+                attachAdminRowEvents(newRow);
+              }
+              adminForm.style.display = 'none';
+              reIndexTable('adminsTable');
+              originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
+            } else {
+              showAlert('danger', data.message);
+            }
+          });
+      });
+
+      function attachAdminRowEvents(row) {
+        row.querySelector('.btn-edit-admin').addEventListener('click', () => {
+          const id = row.getAttribute('data-id');
+          document.getElementById('admin_form_id').value = id;
+          document.getElementById('admin_form_username').value = row.children[1].textContent.trim();
+          document.getElementById('admin_form_password').value = '';
+          adminForm.style.display = 'flex';
+          adminForm.classList.remove('was-validated');
+        });
+        row.querySelector('.btn-delete-admin').addEventListener('click', () => {
+          const id = row.getAttribute('data-id');
+          showConfirm('هل أنت متأكد من حذف المشرف؟', () => {
+            const fd = new FormData();
+            fd.append('action', 'delete_admin');
+            fd.append('admin_id', id);
+            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+            showLoading();
+            fetch('', { method: 'POST', body: fd })
+              .then(r => r.json()).then(data => {
+                hideLoading();
+                if (data.success) {
+                showAlert('success', 'تم حذف المشرف');
+                  if (adminsDt) {
+                    adminsDt.row(row).remove().draw(false);
+                  } else {
+                    row.remove();
+                  }
+                  reIndexTable('adminsTable');
+                  originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
+                }
+              });
+          });
+        });
+      }
+      document.querySelectorAll('#adminsTable tbody tr').forEach(attachAdminRowEvents);
+      reIndexTable('adminsTable');
+
+      filterTable('adminsTable', 'searchAdminsTable', 'btn-search-admins', [1]);
+
+      // ==== أحداث ديناميكية للجداول مع DataTables ====
+      $(document).on('click', '#leavesTable .btn-edit-leave', function () {
+        const id = $(this).closest('tr').data('id');
+        showEditLeave(id);
+      });
+      $(document).on('click', '#leavesTable .btn-delete-leave', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('تأكيد نقل الإجازة إلى الأرشيف؟', () => {
+          const fd = new FormData();
+          fd.append('action', 'delete_leave');
+          fd.append('leave_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          showLoading();
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('warning', data.message);
+                if (leavesDt) {
+                  leavesDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
+                reIndexTable('leavesTable');
+              }
+            });
+        });
+      });
+      $(document).on('click', '#leavesTable .btn-view-queries', function () {
+        const id = $(this).closest('tr').data('id');
+        showQueriesDetails(id);
+      });
+
+      $(document).on('click', '#archivedTable .btn-restore-leave', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('هل تريد استرجاع الإجازة من الأرشيف؟', () => {
+          const fd = new FormData();
+          fd.append('action', 'restore_leave');
+          fd.append('leave_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          showLoading();
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('success', data.message);
+                if (archivedDt) {
+                  archivedDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
+                reIndexTable('archivedTable');
+              }
+            });
+        });
+      });
+
+      $(document).on('click', '#archivedTable .btn-force-delete-leave', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('هل تريد الحذف النهائي للإجازة؟ لا يمكن التراجع عن هذا الإجراء.', () => {
+          const fd = new FormData();
+          fd.append('action', 'force_delete_leave');
+          fd.append('leave_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          showLoading();
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('danger', data.message);
+                if (archivedDt) {
+                  archivedDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
+                reIndexTable('archivedTable');
+              }
+            });
+        });
+      });
+
       // ==== 22. إضافة إجازة جديدة ====
       const leaveForm = document.getElementById('leaveForm');
       leaveForm.addEventListener('submit', e => {
@@ -2339,8 +2786,16 @@ while ($row = $res->fetch_assoc()) {
                   <button class="btn btn-warning btn-sm action-btn btn-view-queries"><i class="bi bi-journal-text"></i> استعلامات</button>
                 </td>
               `;
-              tbody.prepend(newRow);
-              attachLeaveRowEvents(newRow);
+              if (leavesDt) {
+                leavesDt.row.add(newRow).draw(false);
+              } else {
+                tbody.prepend(newRow);
+              }
+              if (!lv.is_paid) {
+                addPaymentNotification(lv.id, lv.service_code, newRow);
+                const createdDate = new Date(lv.created_at);
+                scheduleUnpaidNotification(newRow, createdDate);
+              }
               reIndexTable('leavesTable');
 
               leaveForm.reset();
@@ -2448,99 +2903,16 @@ while ($row = $res->fetch_assoc()) {
         });
       });
 
-      // ==== 26. تعديل الإجازة (رابط أزرار في كل صف) ====
-      function attachLeaveRowEvents(row) {
-        // تعديل
-        row.querySelector('.btn-edit-leave').addEventListener('click', () => {
-          const id = row.getAttribute('data-id');
-          showEditLeave(id);
-        });
-        // أرشفة
-        row.querySelector('.btn-delete-leave').addEventListener('click', () => {
-          const id = row.getAttribute('data-id');
-          showConfirm('تأكيد نقل الإجازة إلى الأرشيف؟', () => {
-            const fd = new FormData();
-            fd.append('action', 'delete_leave');
-            fd.append('leave_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            showLoading();
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('warning', data.message);
-                  row.remove();
-                  reIndexTable('leavesTable');
-                  // حذف صفوف الاستعلامات الخاصة بهذه الإجازة
-                  document.querySelectorAll(`#queriesTable tr[data-id]`).forEach(qrow => {
-                    if (qrow.querySelector('.cell-service').textContent.trim() === row.querySelector('.cell-service').textContent.trim()) {
-                      qrow.remove();
-                    }
-                  });
-                  reIndexTable('queriesTable');
-                }
-              });
-          });
-        });
-        // عرض استعلامات (نشطة أو مؤرشفة)
-        row.querySelector('.btn-view-queries').addEventListener('click', () => {
-          const id = row.getAttribute('data-id');
-          showQueriesDetails(id);
-        });
-      }
-      document.querySelectorAll('#leavesTable tbody tr[data-id]').forEach(attachLeaveRowEvents);
+      // ==== 26. تعديل الإجازة (الأحداث مرتبطة ديناميكيًا عبر jQuery) ====
       reIndexTable('leavesTable');
 
       // ==== 27. استرجاع إجازة من الأرشيف ====
-      document.querySelectorAll('.btn-restore-leave').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('tr');
-          const id = row.getAttribute('data-id');
-          showConfirm('هل تريد استرجاع الإجازة من الأرشيف؟', () => {
-            const fd = new FormData();
-            fd.append('action', 'restore_leave');
-            fd.append('leave_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            showLoading();
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('success', data.message);
-                  row.remove();
-                  reIndexTable('archivedTable');
-                }
-              });
-          });
-        });
-      });
+
+      // تم نقل الربط إلى أحداث jQuery أعلاه
 
       // ==== 28. حذف نهائي إجازة من الأرشيف ====
-      document.querySelectorAll('.btn-force-delete-leave').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('tr');
-          const id = row.getAttribute('data-id');
-          showConfirm('هل تريد الحذف النهائي للإجازة؟ لا يمكن التراجع عن هذا الإجراء.', () => {
-            const fd = new FormData();
-            fd.append('action', 'force_delete_leave');
-            fd.append('leave_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            showLoading();
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('danger', data.message);
-                  row.remove();
-                  reIndexTable('archivedTable');
-                }
-              });
-          });
-        });
-      });
+
+      // تم نقل الربط إلى أحداث jQuery أعلاه
 
       // ==== 29. حذف كل الأرشيف ====
       document.getElementById('btn-delete-all-archived')?.addEventListener('click', () => {
@@ -2558,9 +2930,11 @@ while ($row = $res->fetch_assoc()) {
               hideLoading();
               if (res.success) {
                 showAlert('danger', res.message);
-                document.querySelectorAll('#archivedTable tbody tr').forEach(r => r.remove());
-                const colCount = document.querySelectorAll('#archivedTable thead th').length;
-                document.querySelector('#archivedTable tbody').innerHTML = `<tr class="no-results"><td colspan="${colCount}">لا توجد إجازات في الأرشيف.</td></tr>`;
+                if (archivedDt) {
+                  archivedDt.clear().draw(false);
+                } else {
+                  document.querySelectorAll('#archivedTable tbody tr').forEach(r => r.remove());
+                }
                 reIndexTable('archivedTable');
               }
             });
@@ -2692,27 +3066,29 @@ while ($row = $res->fetch_assoc()) {
       });
 
       // ==== 32. حذف سجل استعلام واحد (في قائمة السجل) ====
-      document.querySelectorAll('.btn-delete-query').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('tr');
-          const id = row.getAttribute('data-id');
-          showConfirm('تأكيد حذف سجل الاستعلام؟', () => {
-            showLoading();
-            const fd = new FormData();
-            fd.append('action', 'delete_query');
-            fd.append('query_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('success', 'تم حذف سجل الاستعلام');
+      $(document).on('click', '.btn-delete-query', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('تأكيد حذف سجل الاستعلام؟', () => {
+          showLoading();
+          const fd = new FormData();
+          fd.append('action', 'delete_query');
+          fd.append('query_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('success', 'تم حذف سجل الاستعلام');
+                if (queriesDt) {
+                  queriesDt.row(row).remove().draw(false);
+                } else {
                   row.remove();
-                  reIndexTable('queriesTable');
                 }
-              });
-          });
+                reIndexTable('queriesTable');
+              }
+            });
         });
       });
       reIndexTable('queriesTable');
@@ -2730,10 +3106,11 @@ while ($row = $res->fetch_assoc()) {
               hideLoading();
               if (data.success) {
                 showAlert('success', data.message);
-                document.querySelectorAll('#queriesTable tbody tr[data-id]').forEach(r => r.remove());
-                const tbodyQ = document.querySelector('#queriesTable tbody');
-                const colCountQ = document.querySelectorAll('#queriesTable thead th').length;
-                tbodyQ.innerHTML = `<tr class="no-results"><td colspan="${colCountQ}">لا توجد سجلات للاستعلام.</td></tr>`;
+                if (queriesDt) {
+                  queriesDt.clear().draw(false);
+                } else {
+                  document.querySelectorAll('#queriesTable tbody tr[data-id]').forEach(r => r.remove());
+                }
                 reIndexTable('queriesTable');
               }
             });
@@ -2968,11 +3345,6 @@ while ($row = $res->fetch_assoc()) {
         });
 
         if (!anyVisible) {
-          const colCount = table.querySelectorAll('thead th').length;
-          const noRow = document.createElement('tr');
-          noRow.classList.add(noResultsClass);
-          noRow.innerHTML = `<td colspan="${colCount}" class="no-results">لا توجد نتائج مطابقة.</td>`;
-          tbody.append(noRow);
           showAlert('warning', 'لا توجد نتائج مطابقة للفلترة');
         } else {
           showAlert('success', 'تمت عملية الفلترة');
@@ -3013,6 +3385,44 @@ while ($row = $res->fetch_assoc()) {
       });
       document.getElementById('btn-reset-queries-dates').addEventListener('click', () => {
         resetDateFilter('queriesTable', originalQueriesRows, 'filter_q_from_date', 'filter_q_to_date');
+      });
+
+      // أحداث الإشعارات
+      document.getElementById('clearPaymentNotifs').addEventListener('click', () => {
+        paymentList.innerHTML = '';
+        updateNotifCount();
+      });
+      document.getElementById('clearQueryNotifs').addEventListener('click', () => {
+        queryList.innerHTML = '';
+        updateNotifCount();
+      });
+      paymentList.addEventListener('click', e => {
+        if (e.target.classList.contains('btn-pay-notif')) {
+          const li = e.target.closest('li');
+          const id = li.dataset.id;
+          const row = document.querySelector(`#leavesTable tr[data-id="${id}"]`);
+          if (row) markLeavePaid(id, row);
+          li.remove();
+          updateNotifCount();
+        } else if (e.target.classList.contains('btn-remind-notif')) {
+          const li = e.target.closest('li');
+          const id = li.dataset.id;
+          const code = li.dataset.code;
+          const row = document.querySelector(`#leavesTable tr[data-id="${id}"]`);
+          const mins = parseInt(prompt('بعد كم دقيقة؟', '5')); 
+          if (mins > 0) {
+            setTimeout(() => addPaymentNotification(id, code, row), mins * 60000);
+          }
+          li.remove();
+          updateNotifCount();
+        }
+      });
+      queryList.addEventListener('click', e => {
+        if (e.target.classList.contains('btn-view-notif')) {
+          const li = e.target.closest('li');
+          const lid = li.dataset.leaveId;
+          showQueriesDetails(lid);
+        }
       });
 
     });
