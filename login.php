@@ -44,12 +44,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <style>
     body {
       background: linear-gradient(135deg, #3776ed 0%, #6ec9f7 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 8s ease infinite;
       min-height: 100vh;
       font-family: 'Cairo', Tahoma, Arial, sans-serif;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0 0; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0 0; }
     }
 
     .login-box {

@@ -511,6 +511,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     exit;
   }
 
+  // ==== 6.7.1 تحديد الإجازة كمدفوعة ====
+  if ($action === 'mark_paid') {
+    $lid = intval($_POST['leave_id']);
+    $conn->query("UPDATE sick_leaves SET is_paid=1, updated_at=NOW() WHERE id=$lid");
+    echo json_encode(['success' => true]);
+    exit;
+  }
+
   // ==== 6.8 حذف جميع الإجازات المؤرشفة ====
   if ($action === 'force_delete_all_archived') {
     $conn->query("DELETE FROM sick_leaves WHERE is_deleted=1");
@@ -577,7 +585,9 @@ $stats = [
   'archived' => 0,
   'doctors' => 0,
   'patients' => 0,
-  'admins' => 0
+  'admins' => 0,
+  'paid' => 0,
+  'unpaid' => 0
 ];
 $res = $conn->query("SELECT COUNT(*) as c FROM sick_leaves WHERE is_deleted=0");
 $stats['active'] = $res->fetch_assoc()['c'];
@@ -591,6 +601,10 @@ $res = $conn->query("SELECT COUNT(*) as c FROM patients");
 $stats['patients'] = $res->fetch_assoc()['c'];
 $res = $conn->query("SELECT COUNT(*) as c FROM admins");
 $stats['admins'] = $res->fetch_assoc()['c'];
+$res = $conn->query("SELECT SUM(is_paid=1) AS paid, SUM(is_paid=0) AS unpaid FROM sick_leaves WHERE is_deleted=0");
+$row = $res->fetch_assoc();
+$stats['paid'] = $row['paid'];
+$stats['unpaid'] = $row['unpaid'];
 
 // ==== 8. جلب قوائم المرضى والأطباء لعرضها في <select> ====
 $patients = [];
@@ -840,7 +854,7 @@ while ($row = $res->fetch_assoc()) {
     }
 
     .stats-box {
-      background: var(--primary-color);
+      background: linear-gradient(135deg, var(--primary-color), #63b0ff);
       color: #fff;
       border-radius: var(--border-radius);
       padding: 12px 6px;
@@ -1076,8 +1090,10 @@ while ($row = $res->fetch_assoc()) {
   <div class="container-fluid py-2">
     <!-- إحصائيات سريعة -->
     <div class="row g-2 mb-3">
-      <div class="col stats-box">إجمالي الإجازات<br><?= $stats['total'] ?></div>
+      <div class="col stats-box">إجمالي<br><?= $stats['total'] ?></div>
       <div class="col stats-box">نشطة<br><?= $stats['active'] ?></div>
+      <div class="col stats-box">مدفوعة<br><?= $stats['paid'] ?></div>
+      <div class="col stats-box">غير مدفوعة<br><?= $stats['unpaid'] ?></div>
       <div class="col stats-box">أرشيف<br><?= $stats['archived'] ?></div>
       <div class="col stats-box">المرضى<br><?= $stats['patients'] ?></div>
       <div class="col stats-box">الأطباء<br><?= $stats['doctors'] ?></div>
@@ -1899,15 +1915,13 @@ while ($row = $res->fetch_assoc()) {
         $('#adminsTable').DataTable(dtOpts);
       }
 
-      // تنبيه للمدفوعات المتأخرة
+      // تنبيه للإجازات غير المدفوعة بعد دقيقتين
       document.querySelectorAll('#leavesTable tbody tr').forEach(row => {
         const paid = row.querySelector('.cell-paid-status .badge.bg-success');
         const createdCell = row.querySelector('.cell-created');
         if (!paid && createdCell) {
-          const created = new Date(createdCell.textContent.split(' ')[0]);
-          if (Date.now() - created.getTime() > 24 * 3600 * 1000) {
-            showAlert('warning', 'إجازة برمز ' + row.querySelector('.cell-service').textContent + ' لم يتم دفعها بعد مرور يوم');
-          }
+          const created = new Date(createdCell.textContent);
+          scheduleUnpaidNotification(row, created);
         }
       });
       // ===== دالة عرض الإشعار (SweetAlert2) =====
@@ -1922,6 +1936,65 @@ while ($row = $res->fetch_assoc()) {
             title: message,
           });
         }
+      }
+
+      function addNotification(text) {
+        const list = document.getElementById('notificationsList');
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = text;
+        list.prepend(li);
+        document.getElementById('notifCount').textContent = list.querySelectorAll('li').length;
+      }
+
+      function markLeavePaid(id, row) {
+        const fd = new FormData();
+        fd.append('action', 'mark_paid');
+        fd.append('leave_id', id);
+        fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+        showLoading();
+        fetch('', { method: 'POST', body: fd })
+          .then(r => r.json()).then(res => {
+            hideLoading();
+            if (res.success) {
+              row.querySelector('.cell-paid-status').innerHTML = '<span class="badge bg-success">مدفوع</span>';
+              showAlert('success', 'تم تحديث حالة الدفع');
+            }
+          });
+      }
+
+      function scheduleUnpaidNotification(row, created) {
+        const now = Date.now();
+        const delay = Math.max(0, 2 * 60 * 1000 - (now - created.getTime()));
+        setTimeout(() => notifyUnpaid(row), delay);
+      }
+
+      function notifyUnpaid(row) {
+        const id = row.getAttribute('data-id');
+        const code = row.querySelector('.cell-service').textContent.trim();
+        addNotification('إجازة ' + code + ' غير مدفوعة');
+        Swal.fire({
+          title: 'الإجازة ' + code + ' غير مدفوعة',
+          showDenyButton: true,
+          confirmButtonText: 'تسجيل كمدفوعة',
+          denyButtonText: 'تذكيري لاحقاً'
+        }).then(result => {
+          if (result.isConfirmed) {
+            markLeavePaid(id, row);
+          } else if (result.isDenied) {
+            Swal.fire({
+              title: 'بعد كم دقيقة؟',
+              input: 'number',
+              inputAttributes: { min: 1 },
+              confirmButtonText: 'تأكيد'
+            }).then(res => {
+              const mins = parseInt(res.value);
+              if (mins > 0) {
+                setTimeout(() => notifyUnpaid(row), mins * 60 * 1000);
+              }
+            });
+          }
+        });
       }
 
       // ===== إظهار/إخفاء مؤشر التحميل =====
@@ -2539,6 +2612,81 @@ while ($row = $res->fetch_assoc()) {
 
       filterTable('adminsTable', 'searchAdminsTable', 'btn-search-admins', [1]);
 
+      // ==== أحداث ديناميكية للجداول مع DataTables ====
+      $(document).on('click', '#leavesTable .btn-edit-leave', function () {
+        const id = $(this).closest('tr').data('id');
+        showEditLeave(id);
+      });
+      $(document).on('click', '#leavesTable .btn-delete-leave', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('تأكيد نقل الإجازة إلى الأرشيف؟', () => {
+          const fd = new FormData();
+          fd.append('action', 'delete_leave');
+          fd.append('leave_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          showLoading();
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('warning', data.message);
+                row.remove();
+                reIndexTable('leavesTable');
+              }
+            });
+        });
+      });
+      $(document).on('click', '#leavesTable .btn-view-queries', function () {
+        const id = $(this).closest('tr').data('id');
+        showQueriesDetails(id);
+      });
+
+      $(document).on('click', '#archivedTable .btn-restore-leave', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('هل تريد استرجاع الإجازة من الأرشيف؟', () => {
+          const fd = new FormData();
+          fd.append('action', 'restore_leave');
+          fd.append('leave_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          showLoading();
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('success', data.message);
+                row.remove();
+                reIndexTable('archivedTable');
+              }
+            });
+        });
+      });
+
+      $(document).on('click', '#archivedTable .btn-force-delete-leave', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('هل تريد الحذف النهائي للإجازة؟ لا يمكن التراجع عن هذا الإجراء.', () => {
+          const fd = new FormData();
+          fd.append('action', 'force_delete_leave');
+          fd.append('leave_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          showLoading();
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('danger', data.message);
+                row.remove();
+                reIndexTable('archivedTable');
+              }
+            });
+        });
+      });
+
       // ==== 22. إضافة إجازة جديدة ====
       const leaveForm = document.getElementById('leaveForm');
       leaveForm.addEventListener('submit', e => {
@@ -2583,7 +2731,6 @@ while ($row = $res->fetch_assoc()) {
                 </td>
               `;
               tbody.prepend(newRow);
-              attachLeaveRowEvents(newRow);
               reIndexTable('leavesTable');
 
               leaveForm.reset();
@@ -2691,99 +2838,16 @@ while ($row = $res->fetch_assoc()) {
         });
       });
 
-      // ==== 26. تعديل الإجازة (رابط أزرار في كل صف) ====
-      function attachLeaveRowEvents(row) {
-        // تعديل
-        row.querySelector('.btn-edit-leave').addEventListener('click', () => {
-          const id = row.getAttribute('data-id');
-          showEditLeave(id);
-        });
-        // أرشفة
-        row.querySelector('.btn-delete-leave').addEventListener('click', () => {
-          const id = row.getAttribute('data-id');
-          showConfirm('تأكيد نقل الإجازة إلى الأرشيف؟', () => {
-            const fd = new FormData();
-            fd.append('action', 'delete_leave');
-            fd.append('leave_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            showLoading();
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('warning', data.message);
-                  row.remove();
-                  reIndexTable('leavesTable');
-                  // حذف صفوف الاستعلامات الخاصة بهذه الإجازة
-                  document.querySelectorAll(`#queriesTable tr[data-id]`).forEach(qrow => {
-                    if (qrow.querySelector('.cell-service').textContent.trim() === row.querySelector('.cell-service').textContent.trim()) {
-                      qrow.remove();
-                    }
-                  });
-                  reIndexTable('queriesTable');
-                }
-              });
-          });
-        });
-        // عرض استعلامات (نشطة أو مؤرشفة)
-        row.querySelector('.btn-view-queries').addEventListener('click', () => {
-          const id = row.getAttribute('data-id');
-          showQueriesDetails(id);
-        });
-      }
-      document.querySelectorAll('#leavesTable tbody tr[data-id]').forEach(attachLeaveRowEvents);
+      // ==== 26. تعديل الإجازة (الأحداث مرتبطة ديناميكيًا عبر jQuery) ====
       reIndexTable('leavesTable');
 
       // ==== 27. استرجاع إجازة من الأرشيف ====
-      document.querySelectorAll('.btn-restore-leave').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('tr');
-          const id = row.getAttribute('data-id');
-          showConfirm('هل تريد استرجاع الإجازة من الأرشيف؟', () => {
-            const fd = new FormData();
-            fd.append('action', 'restore_leave');
-            fd.append('leave_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            showLoading();
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('success', data.message);
-                  row.remove();
-                  reIndexTable('archivedTable');
-                }
-              });
-          });
-        });
-      });
+
+      // تم نقل الربط إلى أحداث jQuery أعلاه
 
       // ==== 28. حذف نهائي إجازة من الأرشيف ====
-      document.querySelectorAll('.btn-force-delete-leave').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('tr');
-          const id = row.getAttribute('data-id');
-          showConfirm('هل تريد الحذف النهائي للإجازة؟ لا يمكن التراجع عن هذا الإجراء.', () => {
-            const fd = new FormData();
-            fd.append('action', 'force_delete_leave');
-            fd.append('leave_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            showLoading();
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('danger', data.message);
-                  row.remove();
-                  reIndexTable('archivedTable');
-                }
-              });
-          });
-        });
-      });
+
+      // تم نقل الربط إلى أحداث jQuery أعلاه
 
       // ==== 29. حذف كل الأرشيف ====
       document.getElementById('btn-delete-all-archived')?.addEventListener('click', () => {
@@ -2933,27 +2997,25 @@ while ($row = $res->fetch_assoc()) {
       });
 
       // ==== 32. حذف سجل استعلام واحد (في قائمة السجل) ====
-      document.querySelectorAll('.btn-delete-query').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = btn.closest('tr');
-          const id = row.getAttribute('data-id');
-          showConfirm('تأكيد حذف سجل الاستعلام؟', () => {
-            showLoading();
-            const fd = new FormData();
-            fd.append('action', 'delete_query');
-            fd.append('query_id', id);
-            fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
-            fetch('', { method: 'POST', body: fd })
-              .then(r => r.json())
-              .then(data => {
-                hideLoading();
-                if (data.success) {
-                  showAlert('success', 'تم حذف سجل الاستعلام');
-                  row.remove();
-                  reIndexTable('queriesTable');
-                }
-              });
-          });
+      $(document).on('click', '.btn-delete-query', function () {
+        const row = $(this).closest('tr');
+        const id = row.data('id');
+        showConfirm('تأكيد حذف سجل الاستعلام؟', () => {
+          showLoading();
+          const fd = new FormData();
+          fd.append('action', 'delete_query');
+          fd.append('query_id', id);
+          fd.append('csrf_token', '<?= $_SESSION["csrf_token"] ?>');
+          fetch('', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+              hideLoading();
+              if (data.success) {
+                showAlert('success', 'تم حذف سجل الاستعلام');
+                row.remove();
+                reIndexTable('queriesTable');
+              }
+            });
         });
       });
       reIndexTable('queriesTable');
