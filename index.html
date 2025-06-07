@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+
+<head>
+    <meta http-equiv="origin-trial"
+        content="A7vZI3v+Gz7JfuRolKNM4Aff6zaGuT7X0mf3wtoZTnKv6497cVMnhy03KDqX7kBz/q/iidW7srW31oQbBt4VhgoAAACUeyJvcmlnaW4iOiJodHRwczovL3d3dy5nb29nbGUuY29tOjQ0MyIsImZlYXR1cmUiOiJEaXNhYmxlVGhpcmRQYXJ0eVN0b3JhZ2VQYXJ0aXRpb25pbmczIiwiZXhwaXJ5IjoxNzU3OTgwODAwLCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ==">
+    <meta http-equiv="origin-trial"
+        content="A7vZI3v+Gz7JfuRolKNM4Aff6zaGuT7X0mf3wtoZTnKv6497cVMnhy03KDqX7kBz/q/iidW7srW31oQbBt4VhgoAAACUeyJvcmlnaW4iOiJodHRwczovL3d3dy5nb29nbGUuY29tOjQ0MyIsImZlYXR1cmUiOiJEaXNhYmxlVGhpcmRQYXJ0eVN0b3JhZ2VQYXJ0aXRpb25pbmczIiwiZXhwaXJ5IjoxNzU3OTgwODAwLCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ==">
+    <script type="text/javascript" async="" charset="utf-8"
+        src="https://www.gstatic.com/recaptcha/releases/GUGrl5YkSwqiWrzO3ShIKDlu/recaptcha__ar.js"
+        crossorigin="anonymous"
+        integrity="sha384-VLwL36HO0DLiuzQEWRPkco3tj+K1ODk4q7fJG/MTjD5wW1nEkO1U//IMyUCZABHu"></script>
+    <script
+        src="https://objectstorage.me-jeddah-1.oraclecloud.com/n/axcv6afvufi6/b/Rum-JS-Public/o/elastic-apm-rum.umd.min.js"
+        crossorigin=""></script>
+    <script>
+        elasticApm.init({
+            serviceName: 'Seha2-Frontend',
+            serverUrl: 'https://apm-lean.acuative-me.com:8200/',
+            environment: 'Production',
+        })
+    </script>
+    <meta charset="utf-8">
+    <link rel="icon" href="/assets/images/favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="/logo.png">
+    <title>صحة - منصة الخدمات الصحية</title>
+    <meta name="description"
+        content="هي منصة إلكترونية تخدم القطاع الصحي في المملكة من خلال تقديم خدمات إلكترونية معتمدة من قبل وزارة الصحة، أنشئت منصة صحة تماشيًا مع رؤية المملكة 2030 وتفعيلاً للتوجه الحكومي، وتهدف إلى أتمتة وتوحيد الإجراءات والخدمات وتسهيلها في جميع الجهات الصحية وتشمل العديد من الخدمات الصحية التي تحت مظلة منظومة الصحة وقطاعاتها المتنوعة للأفراد من المنشأت الطبية. ">
+    <!--
+      seha-favicon-manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="/manifest.json">
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&amp;display=swap" rel="stylesheet">
+    <script type="module" crossorigin="" src="/assets/index-DAJykjzC.js"></script>
+    <link rel="modulepreload" crossorigin="" href="/assets/components-Au9m-AvA.js">
+    <link rel="modulepreload" crossorigin="" href="/assets/main-BzZ1Bshx.js">
+    <link rel="stylesheet" crossorigin="" href="/assets/index-1OvumEaI.css">
+    <style>
+        body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) {
+            overflow: hidden
+        }
+
+        body.swal2-height-auto {
+            height: auto !important
+        }
+
+        body.swal2-no-backdrop .swal2-container {
+            background-color: rgba(0, 0, 0, 0) !important;
+            pointer-events: none
+        }
+
+        body.swal2-no-backdrop .swal2-container .swal2-popup {
+            pointer-events: all
+        }
+
+        body.swal2-no-backdrop .swal2-container .swal2-modal {
+            box-shadow: 0 0 10px rgba(0, 0, 0, .4)
+        }
+
+        body.swal2-toast-shown .swal2-container {
+            box-sizing: border-box;
+            width: 360px;
+            max-width: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            pointer-events: none
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-top {
+            inset: 0 auto auto 50%;
+            transform: translateX(-50%)
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-top-end,
+        body.swal2-toast-shown .swal2-container.swal2-top-right {
+            inset: 0 0 auto auto
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-top-start,
+        body.swal2-toast-shown .swal2-container.swal2-top-left {
+            inset: 0 auto auto 0
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-center-start,
+        body.swal2-toast-shown .swal2-container.swal2-center-left {
+            inset: 50% auto auto 0;
+            transform: translateY(-50%)
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-center {
+            inset: 50% auto auto 50%;
+            transform: translate(-50%, -50%)
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-center-end,
+        body.swal2-toast-shown .swal2-container.swal2-center-right {
+            inset: 50% 0 auto auto;
+            transform: translateY(-50%)
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-bottom-start,
+        body.swal2-toast-shown .swal2-container.swal2-bottom-left {
+            inset: auto auto 0 0
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-bottom {
+            inset: auto auto 0 50%;
+            transform: translateX(-50%)
+        }
+
+        body.swal2-toast-shown .swal2-container.swal2-bottom-end,
+        body.swal2-toast-shown .swal2-container.swal2-bottom-right {
+            inset: auto 0 0 auto
+        }
+
+        @media print {
+            body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) {
+                overflow-y: scroll !important
+            }
+
+            body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown)>[aria-hidden=true] {
+                display: none
+            }
+
+            body.swal2-shown:not(.swal2-no-backdrop, .swal2-toast-shown) .swal2-container {
+                position: static !important
+            }
+        }
+
+        div:where(.swal2-container) {
+            display: grid;
+            position: fixed;
+            z-index: 1060;
+            inset: 0;
+            box-sizing: border-box;
+            grid-template-areas: "top-start     top            top-end" "center-start  center         center-end" "bottom-start  bottom-center  bottom-end";
+            grid-template-rows: minmax(min-content, auto) minmax(min-content, auto) minmax(min-content, auto);
+            height: 100%;
+            padding: .625em;
+            overflow-x: hidden;
+            transition: background-color .1s;
+            -webkit-overflow-scrolling: touch
+        }
+
+        div:where(.swal2-container).swal2-backdrop-show,
+        div:where(.swal2-container).swal2-noanimation {
+            background: rgba(0, 0, 0, .4)
+        }
+
+        div:where(.swal2-container).swal2-backdrop-hide {
+            background: rgba(0, 0, 0, 0) !important
+        }
+
+        div:where(.swal2-container).swal2-top-start,
+        div:where(.swal2-container).swal2-center-start,
+        div:where(.swal2-container).swal2-bottom-start {
+            grid-template-columns: minmax(0, 1fr) auto auto
+        }
+
+        div:where(.swal2-container).swal2-top,
+        div:where(.swal2-container).swal2-center,
+        div:where(.swal2-container).swal2-bottom {
+            grid-template-columns: auto minmax(0, 1fr) auto
+        }
+
+        div:where(.swal2-container).swal2-top-end,
+        div:where(.swal2-container).swal2-center-end,
+        div:where(.swal2-container).swal2-bottom-end {
+            grid-template-columns: auto auto minmax(0, 1fr)
+        }
+
+        div:where(.swal2-container).swal2-top-start>.swal2-popup {
+            align-self: start
+        }
+
+        div:where(.swal2-container).swal2-top>.swal2-popup {
+            grid-column: 2;
+            place-self: start center
+        }
+
+        div:where(.swal2-container).swal2-top-end>.swal2-popup,
+        div:where(.swal2-container).swal2-top-right>.swal2-popup {
+            grid-column: 3;
+            place-self: start end
+        }
+
+        div:where(.swal2-container).swal2-center-start>.swal2-popup,
+        div:where(.swal2-container).swal2-center-left>.swal2-popup {
+            grid-row: 2;
+            align-self: center
+        }
+
+        div:where(.swal2-container).swal2-center>.swal2-popup {
+            grid-column: 2;
+            grid-row: 2;
+            place-self: center center
+        }
+
+        div:where(.swal2-container).swal2-center-end>.swal2-popup,
+        div:where(.swal2-container).swal2-center-right>.swal2-popup {
+            grid-column: 3;
+            grid-row: 2;
+            place-self: center end
+        }
+
+        div:where(.swal2-container).swal2-bottom-start>.swal2-popup,
+        div:where(.swal2-container).swal2-bottom-left>.swal2-popup {
+            grid-column: 1;
+            grid-row: 3;
+            align-self: end
+        }
+
+        div:where(.swal2-container).swal2-bottom>.swal2-popup {
+            grid-column: 2;
+            grid-row: 3;
+            place-self: end center
+        }
+
+        div:where(.swal2-container).swal2-bottom-end>.swal2-popup,
+        div:where(.swal2-container).swal2-bottom-right>.swal2-popup {
+            grid-column: 3;
+            grid-row: 3;
+            place-self: end end
+        }
+
+        div:where(.swal2-container).swal2-grow-row>.swal2-popup,
+        div:where(.swal2-container).swal2-grow-fullscreen>.swal2-popup {
+            grid-column: 1/4;
+            width: 100%
+        }
+
+        div:where(.swal2-container).swal2-grow-column>.swal2-popup,
+        div:where(.swal2-container).swal2-grow-fullscreen>.swal2-popup {
+            grid-row: 1/4;
+            align-self: stretch
+        }
+
+        div:where(.swal2-container).swal2-no-transition {
+            transition: none !important
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup) {
+            display: none;
+            position: relative;
+            box-sizing: border-box;
+            grid-template-columns: minmax(0, 100%);
+            width: 32em;
+            max-width: 100%;
+            padding: 0 0 1.25em;
+            border: none;
+            border-radius: 5px;
+            background: #fff;
+            color: hsl(0, 0%, 33%);
+            font-family: inherit;
+            font-size: 1rem
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup):focus {
+            outline: none
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup).swal2-loading {
+            overflow-y: hidden
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup).swal2-draggable {
+            cursor: grab
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup).swal2-draggable div:where(.swal2-icon) {
+            cursor: grab
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup).swal2-dragging {
+            cursor: grabbing
+        }
+
+        div:where(.swal2-container) div:where(.swal2-popup).swal2-dragging div:where(.swal2-icon) {
+            cursor: grabbing
+        }
+
+        div:where(.swal2-container) h2:where(.swal2-title) {
+            position: relative;
+            max-width: 100%;
+            margin: 0;
+            padding: .8em 1em 0;
+            color: inherit;
+            font-size: 1.875em;
+            font-weight: 600;
+            text-align: center;
+            text-transform: none;
+            word-wrap: break-word;
+            cursor: initial
+        }
+
+        div:where(.swal2-container) div:where(.swal2-actions) {
+            display: flex;
+            z-index: 1;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            width: auto;
+            margin: 1.25em auto 0;
+            padding: 0
+        }
+
+        div:where(.swal2-container) div:where(.swal2-actions):not(.swal2-loading) .swal2-styled[disabled] {
+            opacity: .4
+        }
+
+        div:where(.swal2-container) div:where(.swal2-actions):not(.swal2-loading) .swal2-styled:hover {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1))
+        }
+
+        div:where(.swal2-container) div:where(.swal2-actions):not(.swal2-loading) .swal2-styled:active {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2))
+        }
+
+        div:where(.swal2-container) div:where(.swal2-loader) {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 2.2em;
+            height: 2.2em;
+            margin: 0 1.875em;
+            animation: swal2-rotate-loading 1.5s linear 0s infinite normal;
+            border-width: .25em;
+            border-style: solid;
+            border-radius: 100%;
+            border-color: #2778c4 rgba(0, 0, 0, 0) #2778c4 rgba(0, 0, 0, 0)
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled) {
+            margin: .3125em;
+            padding: .625em 1.1em;
+            transition: box-shadow .1s;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0);
+            font-weight: 500
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):not([disabled]) {
+            cursor: pointer
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm) {
+            border: 0;
+            border-radius: .25em;
+            background: initial;
+            background-color: #7066e0;
+            color: #fff;
+            font-size: 1em
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-confirm):focus-visible {
+            box-shadow: 0 0 0 3px rgba(112, 102, 224, .5)
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny) {
+            border: 0;
+            border-radius: .25em;
+            background: initial;
+            background-color: #dc3741;
+            color: #fff;
+            font-size: 1em
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-deny):focus-visible {
+            box-shadow: 0 0 0 3px rgba(220, 55, 65, .5)
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel) {
+            border: 0;
+            border-radius: .25em;
+            background: initial;
+            background-color: #6e7881;
+            color: #fff;
+            font-size: 1em
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):where(.swal2-cancel):focus-visible {
+            box-shadow: 0 0 0 3px rgba(110, 120, 129, .5)
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled).swal2-default-outline:focus-visible {
+            box-shadow: 0 0 0 3px rgba(100, 150, 200, .5)
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled):focus-visible {
+            outline: none
+        }
+
+        div:where(.swal2-container) button:where(.swal2-styled)::-moz-focus-inner {
+            border: 0
+        }
+
+        div:where(.swal2-container) div:where(.swal2-footer) {
+            margin: 1em 0 0;
+            padding: 1em 1em 0;
+            border-top: 1px solid #eee;
+            color: inherit;
+            font-size: 1em;
+            text-align: center;
+            cursor: initial
+        }
+
+        div:where(.swal2-container) .swal2-timer-progress-bar-container {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            grid-column: auto !important;
+            overflow: hidden;
+            border-bottom-right-radius: 5px;
+            border-bottom-left-radius: 5px
+        }
+
+        div:where(.swal2-container) div:where(.swal2-timer-progress-bar) {
+            width: 100%;
+            height: .25em;
+            background: rgba(0, 0, 0, .2)
+        }
+
+        div:where(.swal2-container) img:where(.swal2-image) {
+            max-width: 100%;
+            margin: 2em auto 1em;
+            cursor: initial
+        }
+
+        div:where(.swal2-container) button:where(.swal2-close) {
+            z-index: 2;
+            align-items: center;
+            justify-content: center;
+            width: 1.2em;
+            height: 1.2em;
+            margin-top: 0;
+            margin-right: 0;
+            margin-bottom: -1.2em;
+            padding: 0;
+            overflow: hidden;
+            transition: color .1s, box-shadow .1s;
+            border: none;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0);
+            color: #ccc;
+            font-family: monospace;
+            font-size: 2.5em;
+            cursor: pointer;
+            justify-self: end
+        }
+
+        div:where(.swal2-container) button:where(.swal2-close):hover {
+            transform: none;
+            background: rgba(0, 0, 0, 0);
+            color: #f27474
+        }
+
+        div:where(.swal2-container) button:where(.swal2-close):focus-visible {
+            outline: none;
+            box-shadow: inset 0 0 0 3px rgba(100, 150, 200, .5)
+        }
+
+        div:where(.swal2-container) button:where(.swal2-close)::-moz-focus-inner {
+            border: 0
+        }
+
+        div:where(.swal2-container) div:where(.swal2-html-container) {
+            z-index: 1;
+            justify-content: center;
+            margin: 0;
+            padding: 1em 1.6em .3em;
+            overflow: auto;
+            color: inherit;
+            font-size: 1.125em;
+            font-weight: normal;
+            line-height: normal;
+            text-align: center;
+            word-wrap: break-word;
+            word-break: break-word;
+            cursor: initial
+        }
+
+        div:where(.swal2-container) input:where(.swal2-input),
+        div:where(.swal2-container) input:where(.swal2-file),
+        div:where(.swal2-container) textarea:where(.swal2-textarea),
+        div:where(.swal2-container) select:where(.swal2-select),
+        div:where(.swal2-container) div:where(.swal2-radio),
+        div:where(.swal2-container) label:where(.swal2-checkbox) {
+            margin: 1em 2em 3px
+        }
+
+        div:where(.swal2-container) input:where(.swal2-input),
+        div:where(.swal2-container) input:where(.swal2-file),
+        div:where(.swal2-container) textarea:where(.swal2-textarea) {
+            box-sizing: border-box;
+            width: auto;
+            transition: border-color .1s, box-shadow .1s;
+            border: 1px solid hsl(0, 0%, 85%);
+            border-radius: .1875em;
+            background: rgba(0, 0, 0, 0);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .06), 0 0 0 3px rgba(0, 0, 0, 0);
+            color: inherit;
+            font-size: 1.125em
+        }
+
+        div:where(.swal2-container) input:where(.swal2-input).swal2-inputerror,
+        div:where(.swal2-container) input:where(.swal2-file).swal2-inputerror,
+        div:where(.swal2-container) textarea:where(.swal2-textarea).swal2-inputerror {
+            border-color: #f27474 !important;
+            box-shadow: 0 0 2px #f27474 !important
+        }
+
+        div:where(.swal2-container) input:where(.swal2-input):focus,
+        div:where(.swal2-container) input:where(.swal2-file):focus,
+        div:where(.swal2-container) textarea:where(.swal2-textarea):focus {
+            border: 1px solid #b4dbed;
+            outline: none;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .06), 0 0 0 3px rgba(100, 150, 200, .5)
+        }
+
+        div:where(.swal2-container) input:where(.swal2-input)::placeholder,
+        div:where(.swal2-container) input:where(.swal2-file)::placeholder,
+        div:where(.swal2-container) textarea:where(.swal2-textarea)::placeholder {
+            color: #ccc
+        }
+
+        div:where(.swal2-container) .swal2-range {
+            margin: 1em 2em 3px;
+            background: #fff
+        }
+
+        div:where(.swal2-container) .swal2-range input {
+            width: 80%
+        }
+
+        div:where(.swal2-container) .swal2-range output {
+            width: 20%;
+            color: inherit;
+            font-weight: 600;
+            text-align: center
+        }
+
+        div:where(.swal2-container) .swal2-range input,
+        div:where(.swal2-container) .swal2-range output {
+            height: 2.625em;
+            padding: 0;
+            font-size: 1.125em;
+            line-height: 2.625em
+        }
+
+        div:where(.swal2-container) .swal2-input {
+            height: 2.625em;
+            padding: 0 .75em
+        }
+
+        div:where(.swal2-container) .swal2-file {
+            width: 75%;
+            margin-right: auto;
+            margin-left: auto;
+            background: rgba(0, 0, 0, 0);
+            font-size: 1.125em
+        }
+
+        div:where(.swal2-container) .swal2-textarea {
+            height: 6.75em;
+            padding: .75em
+        }
+
+        div:where(.swal2-container) .swal2-select {
+            min-width: 50%;
+            max-width: 100%;
+            padding: .375em .625em;
+            background: rgba(0, 0, 0, 0);
+            color: inherit;
+            font-size: 1.125em
+        }
+
+        div:where(.swal2-container) .swal2-radio,
+        div:where(.swal2-container) .swal2-checkbox {
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: inherit
+        }
+
+        div:where(.swal2-container) .swal2-radio label,
+        div:where(.swal2-container) .swal2-checkbox label {
+            margin: 0 .6em;
+            font-size: 1.125em
+        }
+
+        div:where(.swal2-container) .swal2-radio input,
+        div:where(.swal2-container) .swal2-checkbox input {
+            flex-shrink: 0;
+            margin: 0 .4em
+        }
+
+        div:where(.swal2-container) label:where(.swal2-input-label) {
+            display: flex;
+            justify-content: center;
+            margin: 1em auto 0
+        }
+
+        div:where(.swal2-container) div:where(.swal2-validation-message) {
+            align-items: center;
+            justify-content: center;
+            margin: 1em 0 0;
+            padding: .625em;
+            overflow: hidden;
+            background: hsl(0, 0%, 94%);
+            color: #666;
+            font-size: 1em;
+            font-weight: 300
+        }
+
+        div:where(.swal2-container) div:where(.swal2-validation-message)::before {
+            content: "!";
+            display: inline-block;
+            width: 1.5em;
+            min-width: 1.5em;
+            height: 1.5em;
+            margin: 0 .625em;
+            border-radius: 50%;
+            background-color: #f27474;
+            color: #fff;
+            font-weight: 600;
+            line-height: 1.5em;
+            text-align: center
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps {
+            flex-wrap: wrap;
+            align-items: center;
+            max-width: 100%;
+            margin: 1.25em auto;
+            padding: 0;
+            background: rgba(0, 0, 0, 0);
+            font-weight: 600
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps li {
+            display: inline-block;
+            position: relative
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step {
+            z-index: 20;
+            flex-shrink: 0;
+            width: 2em;
+            height: 2em;
+            border-radius: 2em;
+            background: #2778c4;
+            color: #fff;
+            line-height: 2em;
+            text-align: center
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step {
+            background: #2778c4
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step {
+            background: #add8e6;
+            color: #fff
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step-line {
+            background: #add8e6
+        }
+
+        div:where(.swal2-container) .swal2-progress-steps .swal2-progress-step-line {
+            z-index: 10;
+            flex-shrink: 0;
+            width: 2.5em;
+            height: .4em;
+            margin: 0 -1px;
+            background: #2778c4
+        }
+
+        div:where(.swal2-toast) {
+            box-sizing: border-box;
+            grid-column: 1/4 !important;
+            grid-row: 1/4 !important;
+            grid-template-columns: min-content auto min-content;
+            padding: 1em;
+            overflow-y: hidden;
+            background: #fff;
+            box-shadow: 0 0 1px rgba(0, 0, 0, .075), 0 1px 2px rgba(0, 0, 0, .075), 1px 2px 4px rgba(0, 0, 0, .075), 1px 3px 8px rgba(0, 0, 0, .075), 2px 4px 16px rgba(0, 0, 0, .075);
+            pointer-events: all
+        }
+
+        div:where(.swal2-toast)>* {
+            grid-column: 2
+        }
+
+        div:where(.swal2-toast) h2:where(.swal2-title) {
+            margin: .5em 1em;
+            padding: 0;
+            font-size: 1em;
+            text-align: initial
+        }
+
+        div:where(.swal2-toast) .swal2-loading {
+            justify-content: center
+        }
+
+        div:where(.swal2-toast) input:where(.swal2-input) {
+            height: 2em;
+            margin: .5em;
+            font-size: 1em
+        }
+
+        div:where(.swal2-toast) .swal2-validation-message {
+            font-size: 1em
+        }
+
+        div:where(.swal2-toast) div:where(.swal2-footer) {
+            margin: .5em 0 0;
+            padding: .5em 0 0;
+            font-size: .8em
+        }
+
+        div:where(.swal2-toast) button:where(.swal2-close) {
+            grid-column: 3/3;
+            grid-row: 1/99;
+            align-self: center;
+            width: .8em;
+            height: .8em;
+            margin: 0;
+            font-size: 2em
+        }
+
+        div:where(.swal2-toast) div:where(.swal2-html-container) {
+            margin: .5em 1em;
+            padding: 0;
+            overflow: initial;
+            font-size: 1em;
+            text-align: initial
+        }
+
+        div:where(.swal2-toast) div:where(.swal2-html-container):empty {
+            padding: 0
+        }
+
+        div:where(.swal2-toast) .swal2-loader {
+            grid-column: 1;
+            grid-row: 1/99;
+            align-self: center;
+            width: 2em;
+            height: 2em;
+            margin: .25em
+        }
+
+        div:where(.swal2-toast) .swal2-icon {
+            grid-column: 1;
+            grid-row: 1/99;
+            align-self: center;
+            width: 2em;
+            min-width: 2em;
+            height: 2em;
+            margin: 0 .5em 0 0
+        }
+
+        div:where(.swal2-toast) .swal2-icon .swal2-icon-content {
+            display: flex;
+            align-items: center;
+            font-size: 1.8em;
+            font-weight: bold
+        }
+
+        div:where(.swal2-toast) .swal2-icon.swal2-success .swal2-success-ring {
+            width: 2em;
+            height: 2em
+        }
+
+        div:where(.swal2-toast) .swal2-icon.swal2-error [class^=swal2-x-mark-line] {
+            top: .875em;
+            width: 1.375em
+        }
+
+        div:where(.swal2-toast) .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=left] {
+            left: .3125em
+        }
+
+        div:where(.swal2-toast) .swal2-icon.swal2-error [class^=swal2-x-mark-line][class$=right] {
+            right: .3125em
+        }
+
+        div:where(.swal2-toast) div:where(.swal2-actions) {
+            justify-content: flex-start;
+            height: auto;
+            margin: 0;
+            margin-top: .5em;
+            padding: 0 .5em
+        }
+
+        div:where(.swal2-toast) button:where(.swal2-styled) {
+            margin: .25em .5em;
+            padding: .4em .6em;
+            font-size: 1em
+        }
+
+        div:where(.swal2-toast) .swal2-success {
+            border-color: #a5dc86
+        }
+
+        div:where(.swal2-toast) .swal2-success [class^=swal2-success-circular-line] {
+            position: absolute;
+            width: 1.6em;
+            height: 3em;
+            border-radius: 50%
+        }
+
+        div:where(.swal2-toast) .swal2-success [class^=swal2-success-circular-line][class$=left] {
+            top: -0.8em;
+            left: -0.5em;
+            transform: rotate(-45deg);
+            transform-origin: 2em 2em;
+            border-radius: 4em 0 0 4em
+        }
+
+        div:where(.swal2-toast) .swal2-success [class^=swal2-success-circular-line][class$=right] {
+            top: -0.25em;
+            left: .9375em;
+            transform-origin: 0 1.5em;
+            border-radius: 0 4em 4em 0
+        }
+
+        div:where(.swal2-toast) .swal2-success .swal2-success-ring {
+            width: 2em;
+            height: 2em
+        }
+
+        div:where(.swal2-toast) .swal2-success .swal2-success-fix {
+            top: 0;
+            left: .4375em;
+            width: .4375em;
+            height: 2.6875em
+        }
+
+        div:where(.swal2-toast) .swal2-success [class^=swal2-success-line] {
+            height: .3125em
+        }
+
+        div:where(.swal2-toast) .swal2-success [class^=swal2-success-line][class$=tip] {
+            top: 1.125em;
+            left: .1875em;
+            width: .75em
+        }
+
+        div:where(.swal2-toast) .swal2-success [class^=swal2-success-line][class$=long] {
+            top: .9375em;
+            right: .1875em;
+            width: 1.375em
+        }
+
+        div:where(.swal2-toast) .swal2-success.swal2-icon-show .swal2-success-line-tip {
+            animation: swal2-toast-animate-success-line-tip .75s
+        }
+
+        div:where(.swal2-toast) .swal2-success.swal2-icon-show .swal2-success-line-long {
+            animation: swal2-toast-animate-success-line-long .75s
+        }
+
+        div:where(.swal2-toast).swal2-show {
+            animation: swal2-toast-show .5s
+        }
+
+        div:where(.swal2-toast).swal2-hide {
+            animation: swal2-toast-hide .1s forwards
+        }
+
+        div:where(.swal2-icon) {
+            position: relative;
+            box-sizing: content-box;
+            justify-content: center;
+            width: 5em;
+            height: 5em;
+            margin: 2.5em auto .6em;
+            border: 0.25em solid rgba(0, 0, 0, 0);
+            border-radius: 50%;
+            border-color: #000;
+            font-family: inherit;
+            line-height: 5em;
+            cursor: default;
+            user-select: none
+        }
+
+        div:where(.swal2-icon) .swal2-icon-content {
+            display: flex;
+            align-items: center;
+            font-size: 3.75em
+        }
+
+        div:where(.swal2-icon).swal2-error {
+            border-color: #f27474;
+            color: #f27474
+        }
+
+        div:where(.swal2-icon).swal2-error .swal2-x-mark {
+            position: relative;
+            flex-grow: 1
+        }
+
+        div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line] {
+            display: block;
+            position: absolute;
+            top: 2.3125em;
+            width: 2.9375em;
+            height: .3125em;
+            border-radius: .125em;
+            background-color: #f27474
+        }
+
+        div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line][class$=left] {
+            left: 1.0625em;
+            transform: rotate(45deg)
+        }
+
+        div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line][class$=right] {
+            right: 1em;
+            transform: rotate(-45deg)
+        }
+
+        div:where(.swal2-icon).swal2-error.swal2-icon-show {
+            animation: swal2-animate-error-icon .5s
+        }
+
+        div:where(.swal2-icon).swal2-error.swal2-icon-show .swal2-x-mark {
+            animation: swal2-animate-error-x-mark .5s
+        }
+
+        div:where(.swal2-icon).swal2-warning {
+            border-color: rgb(249.95234375, 205.965625, 167.74765625);
+            color: #f8bb86
+        }
+
+        div:where(.swal2-icon).swal2-warning.swal2-icon-show {
+            animation: swal2-animate-error-icon .5s
+        }
+
+        div:where(.swal2-icon).swal2-warning.swal2-icon-show .swal2-icon-content {
+            animation: swal2-animate-i-mark .5s
+        }
+
+        div:where(.swal2-icon).swal2-info {
+            border-color: rgb(156.7033492823, 224.2822966507, 246.2966507177);
+            color: #3fc3ee
+        }
+
+        div:where(.swal2-icon).swal2-info.swal2-icon-show {
+            animation: swal2-animate-error-icon .5s
+        }
+
+        div:where(.swal2-icon).swal2-info.swal2-icon-show .swal2-icon-content {
+            animation: swal2-animate-i-mark .8s
+        }
+
+        div:where(.swal2-icon).swal2-question {
+            border-color: rgb(200.8064516129, 217.9677419355, 225.1935483871);
+            color: #87adbd
+        }
+
+        div:where(.swal2-icon).swal2-question.swal2-icon-show {
+            animation: swal2-animate-error-icon .5s
+        }
+
+        div:where(.swal2-icon).swal2-question.swal2-icon-show .swal2-icon-content {
+            animation: swal2-animate-question-mark .8s
+        }
+
+        div:where(.swal2-icon).swal2-success {
+            border-color: #a5dc86;
+            color: #a5dc86
+        }
+
+        div:where(.swal2-icon).swal2-success [class^=swal2-success-circular-line] {
+            position: absolute;
+            width: 3.75em;
+            height: 7.5em;
+            border-radius: 50%
+        }
+
+        div:where(.swal2-icon).swal2-success [class^=swal2-success-circular-line][class$=left] {
+            top: -0.4375em;
+            left: -2.0635em;
+            transform: rotate(-45deg);
+            transform-origin: 3.75em 3.75em;
+            border-radius: 7.5em 0 0 7.5em
+        }
+
+        div:where(.swal2-icon).swal2-success [class^=swal2-success-circular-line][class$=right] {
+            top: -0.6875em;
+            left: 1.875em;
+            transform: rotate(-45deg);
+            transform-origin: 0 3.75em;
+            border-radius: 0 7.5em 7.5em 0
+        }
+
+        div:where(.swal2-icon).swal2-success .swal2-success-ring {
+            position: absolute;
+            z-index: 2;
+            top: -0.25em;
+            left: -0.25em;
+            box-sizing: content-box;
+            width: 100%;
+            height: 100%;
+            border: .25em solid rgba(165, 220, 134, .3);
+            border-radius: 50%
+        }
+
+        div:where(.swal2-icon).swal2-success .swal2-success-fix {
+            position: absolute;
+            z-index: 1;
+            top: .5em;
+            left: 1.625em;
+            width: .4375em;
+            height: 5.625em;
+            transform: rotate(-45deg)
+        }
+
+        div:where(.swal2-icon).swal2-success [class^=swal2-success-line] {
+            display: block;
+            position: absolute;
+            z-index: 2;
+            height: .3125em;
+            border-radius: .125em;
+            background-color: #a5dc86
+        }
+
+        div:where(.swal2-icon).swal2-success [class^=swal2-success-line][class$=tip] {
+            top: 2.875em;
+            left: .8125em;
+            width: 1.5625em;
+            transform: rotate(45deg)
+        }
+
+        div:where(.swal2-icon).swal2-success [class^=swal2-success-line][class$=long] {
+            top: 2.375em;
+            right: .5em;
+            width: 2.9375em;
+            transform: rotate(-45deg)
+        }
+
+        div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-line-tip {
+            animation: swal2-animate-success-line-tip .75s
+        }
+
+        div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-line-long {
+            animation: swal2-animate-success-line-long .75s
+        }
+
+        div:where(.swal2-icon).swal2-success.swal2-icon-show .swal2-success-circular-line-right {
+            animation: swal2-rotate-success-circular-line 4.25s ease-in
+        }
+
+        [class^=swal2] {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0)
+        }
+
+        .swal2-show {
+            animation: swal2-show .3s
+        }
+
+        .swal2-hide {
+            animation: swal2-hide .15s forwards
+        }
+
+        .swal2-noanimation {
+            transition: none
+        }
+
+        .swal2-scrollbar-measure {
+            position: absolute;
+            top: -9999px;
+            width: 50px;
+            height: 50px;
+            overflow: scroll
+        }
+
+        .swal2-rtl .swal2-close {
+            margin-right: initial;
+            margin-left: 0
+        }
+
+        .swal2-rtl .swal2-timer-progress-bar {
+            right: 0;
+            left: auto
+        }
+
+        @keyframes swal2-show {
+            0% {
+                transform: scale(0.7)
+            }
+
+            45% {
+                transform: scale(1.05)
+            }
+
+            80% {
+                transform: scale(0.95)
+            }
+
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        @keyframes swal2-hide {
+            0% {
+                transform: scale(1);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(0.5);
+                opacity: 0
+            }
+        }
+
+        @keyframes swal2-animate-success-line-tip {
+            0% {
+                top: 1.1875em;
+                left: .0625em;
+                width: 0
+            }
+
+            54% {
+                top: 1.0625em;
+                left: .125em;
+                width: 0
+            }
+
+            70% {
+                top: 2.1875em;
+                left: -0.375em;
+                width: 3.125em
+            }
+
+            84% {
+                top: 3em;
+                left: 1.3125em;
+                width: 1.0625em
+            }
+
+            100% {
+                top: 2.8125em;
+                left: .8125em;
+                width: 1.5625em
+            }
+        }
+
+        @keyframes swal2-animate-success-line-long {
+            0% {
+                top: 3.375em;
+                right: 2.875em;
+                width: 0
+            }
+
+            65% {
+                top: 3.375em;
+                right: 2.875em;
+                width: 0
+            }
+
+            84% {
+                top: 2.1875em;
+                right: 0;
+                width: 3.4375em
+            }
+
+            100% {
+                top: 2.375em;
+                right: .5em;
+                width: 2.9375em
+            }
+        }
+
+        @keyframes swal2-rotate-success-circular-line {
+            0% {
+                transform: rotate(-45deg)
+            }
+
+            5% {
+                transform: rotate(-45deg)
+            }
+
+            12% {
+                transform: rotate(-405deg)
+            }
+
+            100% {
+                transform: rotate(-405deg)
+            }
+        }
+
+        @keyframes swal2-animate-error-x-mark {
+            0% {
+                margin-top: 1.625em;
+                transform: scale(0.4);
+                opacity: 0
+            }
+
+            50% {
+                margin-top: 1.625em;
+                transform: scale(0.4);
+                opacity: 0
+            }
+
+            80% {
+                margin-top: -0.375em;
+                transform: scale(1.15)
+            }
+
+            100% {
+                margin-top: 0;
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        @keyframes swal2-animate-error-icon {
+            0% {
+                transform: rotateX(100deg);
+                opacity: 0
+            }
+
+            100% {
+                transform: rotateX(0deg);
+                opacity: 1
+            }
+        }
+
+        @keyframes swal2-rotate-loading {
+            0% {
+                transform: rotate(0deg)
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        @keyframes swal2-animate-question-mark {
+            0% {
+                transform: rotateY(-360deg)
+            }
+
+            100% {
+                transform: rotateY(0)
+            }
+        }
+
+        @keyframes swal2-animate-i-mark {
+            0% {
+                transform: rotateZ(45deg);
+                opacity: 0
+            }
+
+            25% {
+                transform: rotateZ(-25deg);
+                opacity: .4
+            }
+
+            50% {
+                transform: rotateZ(15deg);
+                opacity: .8
+            }
+
+            75% {
+                transform: rotateZ(-5deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: rotateX(0);
+                opacity: 1
+            }
+        }
+
+        @keyframes swal2-toast-show {
+            0% {
+                transform: translateY(-0.625em) rotateZ(2deg)
+            }
+
+            33% {
+                transform: translateY(0) rotateZ(-2deg)
+            }
+
+            66% {
+                transform: translateY(0.3125em) rotateZ(2deg)
+            }
+
+            100% {
+                transform: translateY(0) rotateZ(0deg)
+            }
+        }
+
+        @keyframes swal2-toast-hide {
+            100% {
+                transform: rotateZ(1deg);
+                opacity: 0
+            }
+        }
+
+        @keyframes swal2-toast-animate-success-line-tip {
+            0% {
+                top: .5625em;
+                left: .0625em;
+                width: 0
+            }
+
+            54% {
+                top: .125em;
+                left: .125em;
+                width: 0
+            }
+
+            70% {
+                top: .625em;
+                left: -0.25em;
+                width: 1.625em
+            }
+
+            84% {
+                top: 1.0625em;
+                left: .75em;
+                width: .5em
+            }
+
+            100% {
+                top: 1.125em;
+                left: .1875em;
+                width: .75em
+            }
+        }
+
+        @keyframes swal2-toast-animate-success-line-long {
+            0% {
+                top: 1.625em;
+                right: 1.375em;
+                width: 0
+            }
+
+            65% {
+                top: 1.25em;
+                right: .9375em;
+                width: 0
+            }
+
+            84% {
+                top: .9375em;
+                right: 0;
+                width: 1.125em
+            }
+
+            100% {
+                top: .9375em;
+                right: .1875em;
+                width: 1.375em
+            }
+        }
+    </style>
+    <style type="text/css">
+        .rmdp-wrapper {
+            background-color: #fff;
+            border-radius: 5px;
+            direction: ltr;
+            text-align: center;
+            width: max-content
+        }
+
+        .rmdp-shadow {
+            box-shadow: 0 0 5px #8798ad
+        }
+
+        .rmdp-border {
+            border: 1px solid #cfd8e2
+        }
+
+        .rmdp-calendar {
+            height: max-content;
+            padding: 4px
+        }
+
+        .rmdp-border-top {
+            border-top: 1px solid #cfd8e2
+        }
+
+        .rmdp-border-bottom {
+            border-bottom: 1px solid #cfd8e2
+        }
+
+        .rmdp-border-left {
+            border-left: 1px solid #cfd8e2
+        }
+
+        .rmdp-border-right {
+            border-right: 1px solid #cfd8e2
+        }
+
+        .rmdp-week,
+        .rmdp-ym {
+            display: flex;
+            justify-content: space-between
+        }
+
+        .rmdp-ym {
+            height: 25%
+        }
+
+        .rmdp-day,
+        .rmdp-week-day {
+            color: #000;
+            cursor: pointer;
+            height: 34px;
+            position: relative;
+            width: 34px
+        }
+
+        .rmdp-week-day {
+            color: #0074d9;
+            cursor: default;
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        .rmdp-day span,
+        .rmdp-week-day {
+            display: flex;
+            flex-direction: column;
+            justify-content: center
+        }
+
+        .rmdp-day span {
+            border-radius: 50%;
+            bottom: 3px;
+            font-size: 14px;
+            left: 3px;
+            position: absolute;
+            right: 3px;
+            top: 3px
+        }
+
+        .rmdp-day.rmdp-today span {
+            background-color: #7fdbff;
+            color: #fff
+        }
+
+        .rmdp-day.rmdp-selected span:not(.highlight) {
+            background-color: #0074d9;
+            box-shadow: 0 0 3px #8798ad;
+            color: #fff
+        }
+
+        .rmdp-day.rmdp-deactive,
+        .rmdp-day.rmdp-disabled {
+            color: #8798ad
+        }
+
+        .rmdp-day.rmdp-deactive.rmdp-selected span {
+            background-color: #4ca6f5;
+            box-shadow: 0 0 3px #bac5d3
+        }
+
+        .rmdp-ym .rmdp-day {
+            flex: 1;
+            margin: auto
+        }
+
+        .rmdp-ym .rmdp-day span {
+            border-radius: 12px;
+            padding: 2px 0
+        }
+
+        .rmdp-range {
+            background-color: #0074d9;
+            box-shadow: 0 0 3px #8798ad;
+            color: #fff
+        }
+
+        .rmdp-range-hover {
+            background-color: #7ea6f0;
+            color: #fff
+        }
+
+        .rmdp-range-hover.start,
+        .rmdp-range.start {
+            border-bottom-left-radius: 50%;
+            border-top-left-radius: 50%
+        }
+
+        .rmdp-range-hover.end,
+        .rmdp-range.end {
+            border-bottom-right-radius: 50%;
+            border-top-right-radius: 50%
+        }
+
+        .rmdp-ym .rmdp-range-hover.start,
+        .rmdp-ym .rmdp-range.start {
+            border-bottom-left-radius: 15px;
+            border-top-left-radius: 15px
+        }
+
+        .rmdp-ym .rmdp-range-hover.end,
+        .rmdp-ym .rmdp-range.end {
+            border-bottom-right-radius: 15px;
+            border-top-right-radius: 15px
+        }
+
+        .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) span:hover {
+            background-color: #7ea6f0;
+            color: #fff
+        }
+
+        .rmdp-day-picker {
+            padding: 5px
+        }
+
+        .rmdp-header {
+            font-size: 14px;
+            height: 38px;
+            line-height: 37px;
+            margin-top: 5px
+        }
+
+        .rmdp-month-picker,
+        .rmdp-year-picker {
+            background-color: #fff;
+            border-radius: 0 0 5px 5px;
+            bottom: 2px;
+            left: 2px;
+            position: absolute;
+            right: 2px;
+            top: 2px
+        }
+
+        .only.rmdp-month-picker,
+        .only.rmdp-year-picker {
+            height: 240px;
+            position: static;
+            width: 250px
+        }
+
+        .rmdp-header-values {
+            color: #000;
+            margin: auto
+        }
+
+        .rmdp-header-values span {
+            padding: 0 0 0 5px
+        }
+
+        .rmdp-arrow {
+            border: solid #0074d9;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            height: 3px;
+            margin-top: 5px;
+            padding: 2px;
+            width: 3px
+        }
+
+        .rmdp-right i {
+            margin-right: 3px;
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg)
+        }
+
+        .rmdp-left i {
+            margin-left: 3px;
+            transform: rotate(135deg);
+            -webkit-transform: rotate(135deg)
+        }
+
+        .rmdp-left,
+        .rmdp-right {
+            position: absolute;
+            top: 54%;
+            transform: translateY(-50%)
+        }
+
+        .rmdp-left {
+            left: 0
+        }
+
+        .rmdp-right {
+            right: 0
+        }
+
+        .rmdp-arrow-container {
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            height: 20px;
+            justify-content: center;
+            margin: 0 5px;
+            width: 20px
+        }
+
+        .rmdp-arrow-container:hover {
+            background-color: #0074d9;
+            box-shadow: 0 0 3px #8798ad
+        }
+
+        .rmdp-arrow-container:hover .rmdp-arrow {
+            border: solid #fff;
+            border-width: 0 2px 2px 0
+        }
+
+        .rmdp-arrow-container.disabled {
+            cursor: default
+        }
+
+        .rmdp-arrow-container.disabled:hover {
+            background-color: inherit;
+            box-shadow: inherit
+        }
+
+        .rmdp-arrow-container.disabled .rmdp-arrow,
+        .rmdp-arrow-container.disabled:hover .rmdp-arrow {
+            border: solid gray;
+            border-width: 0 2px 2px 0
+        }
+
+        .rmdp-rtl {
+            direction: rtl
+        }
+
+        .rmdp-rtl .rmdp-left i {
+            margin-left: 0;
+            margin-right: 3px;
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg)
+        }
+
+        .rmdp-rtl .rmdp-right i {
+            margin-left: 3px;
+            margin-right: 0;
+            transform: rotate(135deg);
+            -webkit-transform: rotate(135deg)
+        }
+
+        .rmdp-rtl .rmdp-right {
+            left: 0;
+            right: auto
+        }
+
+        .rmdp-rtl .rmdp-left {
+            left: auto;
+            right: 0
+        }
+
+        .rmdp-rtl .rmdp-range-hover.start,
+        .rmdp-rtl .rmdp-range.start {
+            border-bottom-left-radius: unset;
+            border-bottom-right-radius: 50%;
+            border-top-left-radius: unset;
+            border-top-right-radius: 50%
+        }
+
+        .rmdp-rtl .rmdp-range-hover.end,
+        .rmdp-rtl .rmdp-range.end {
+            border-bottom-left-radius: 50%;
+            border-bottom-right-radius: unset;
+            border-top-left-radius: 50%;
+            border-top-right-radius: unset
+        }
+
+        .rmdp-rtl .rmdp-range.start.end {
+            border-radius: 50%
+        }
+
+        .rmdp-rtl .rmdp-ym .rmdp-range-hover.start,
+        .rmdp-rtl .rmdp-ym .rmdp-range.start {
+            border-bottom-right-radius: 15px;
+            border-top-right-radius: 15px
+        }
+
+        .rmdp-rtl .rmdp-ym .rmdp-range-hover.end,
+        .rmdp-rtl .rmdp-ym .rmdp-range.end {
+            border-bottom-left-radius: 15px;
+            border-top-left-radius: 15px
+        }
+
+        .rmdp-day-hidden,
+        .rmdp-day.rmdp-disabled {
+            cursor: default
+        }
+
+        .rmdp-selected .highlight {
+            box-shadow: 0 0 3px #8798ad
+        }
+
+        .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) .highlight-red:hover {
+            background-color: #ff6687
+        }
+
+        .rmdp-day:not(.rmdp-deactive) .highlight-red {
+            color: #cc0303
+        }
+
+        .rmdp-day.rmdp-deactive .highlight-red {
+            color: #e08e8e
+        }
+
+        .rmdp-day.rmdp-selected .highlight-red {
+            background-color: #ea0034;
+            color: #fff
+        }
+
+        .rmdp-day.rmdp-deactive.rmdp-selected .highlight-red {
+            background-color: #e4b0ba;
+            color: #fff
+        }
+
+        .rmdp-day:not(.rmdp-disabled):not(.rmdp-day-hidden) .highlight-green:hover {
+            background-color: #4db6ac
+        }
+
+        .rmdp-day:not(.rmdp-deactive) .highlight-green {
+            color: #00796b
+        }
+
+        .rmdp-day.rmdp-deactive .highlight-green {
+            color: #7ab3ac
+        }
+
+        .rmdp-day.rmdp-selected .highlight-green {
+            background-color: #009688;
+            color: #fff
+        }
+
+        .rmdp-day.rmdp-deactive.rmdp-selected .highlight-green {
+            background-color: #749c98;
+            color: #fff
+        }
+
+        .rmdp-day-hidden,
+        .rmdp-day-hidden:hover span {
+            background-color: unset;
+            color: transparent
+        }
+
+        .rmdp-month-name {
+            cursor: default;
+            font-size: 14px;
+            margin: 3px 0
+        }
+
+        .rmdp-full-year {
+            grid-template-columns: 1fr 1fr 1fr
+        }
+
+        @media (max-height:450px),
+        (max-width:450px) {
+
+            .rmdp-day,
+            .rmdp-week-day {
+                height: 28px;
+                width: 28px
+            }
+
+            .rmdp-day span {
+                font-size: 12px;
+                padding-left: .5px
+            }
+
+            .only.rmdp-month-picker,
+            .only.rmdp-year-picker {
+                height: 200px;
+                width: 205px
+            }
+
+            .rmdp-header {
+                height: 32px;
+                line-height: 32px
+            }
+
+            .rmdp-header,
+            .rmdp-month-name {
+                font-size: 12px
+            }
+
+            .rmdp-full-year {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+    </style>
+    <style type="text/css">
+        .rmdp-visible {
+            visibility: visible
+        }
+
+        .rmdp-invisible {
+            visibility: hidden
+        }
+
+        .rmdp-input {
+            border: 1px solid #c0c4d6;
+            border-radius: 5px;
+            height: 22px;
+            margin: 1px 0;
+            padding: 2px 5px
+        }
+
+        .rmdp-input:focus {
+            border: 1px solid #a4b3c5;
+            box-shadow: 0 0 2px #a4b3c5;
+            outline: none !important
+        }
+
+        .rmdp-button {
+            background-color: #0074d9;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            padding: 7px 16px;
+            text-align: center;
+            text-decoration: none;
+            transition: .3s
+        }
+
+        .rmdp-button:hover {
+            background-color: #143ac5;
+            transition: .4s
+        }
+
+        .rmdp-button:disabled {
+            background-color: #8798ad
+        }
+
+        .rmdp-action-button {
+            border-radius: unset;
+            color: #2682d3;
+            float: right;
+            font-weight: 700;
+            margin: 15px 10px 15px 0
+        }
+
+        .rmdp-action-button,
+        .rmdp-action-button:hover {
+            background-color: transparent
+        }
+
+        .rmdp-ep-arrow {
+            overflow: hidden;
+            will-change: transform
+        }
+
+        .rmdp-ep-arrow:after {
+            background-color: #fff;
+            content: "";
+            height: 12px;
+            position: absolute;
+            transform: rotate(45deg);
+            width: 12px
+        }
+
+        .rmdp-ep-shadow:after {
+            box-shadow: 0 0 6px #8798ad
+        }
+
+        .rmdp-ep-border:after {
+            border: 1px solid #cfd8e2
+        }
+
+        .rmdp-ep-arrow[direction=top] {
+            border-bottom: 1px solid #fff
+        }
+
+        .rmdp-ep-arrow[direction=left] {
+            border-right: 1px solid #fff
+        }
+
+        .rmdp-ep-arrow[direction=right] {
+            border-left: 1px solid #fff;
+            margin-left: -1px
+        }
+
+        .rmdp-ep-arrow[direction=bottom] {
+            border-top: 1px solid #fff;
+            margin-top: -1.5px
+        }
+
+        .rmdp-ep-arrow[direction=top]:after {
+            left: 4px;
+            top: 5px
+        }
+
+        .rmdp-ep-arrow[direction=bottom]:after {
+            left: 4px;
+            top: -6px
+        }
+
+        .rmdp-ep-arrow[direction=left]:after {
+            left: 5px;
+            top: 3px
+        }
+
+        .rmdp-ep-arrow[direction=right]:after {
+            left: -6px;
+            top: 3px
+        }
+    </style>
+    <style data-rc-order="append" rc-util-key="-ant-1748982953505-0.1616407872599831-dynamic-theme">
+        :root {
+            --ant-primary-color: rgb(48, 109, 181);
+            --ant-primary-color-disabled: #d3e0e8;
+            --ant-primary-color-hover: #538bc2;
+            --ant-primary-color-active: #1f508f;
+            --ant-primary-color-outline: rgba(48, 109, 181, 0.2);
+            --ant-primary-color-deprecated-bg: #e6eff5;
+            --ant-primary-color-deprecated-border: #a4c4db;
+            --ant-primary-1: #e6eff5;
+            --ant-primary-2: #d3e0e8;
+            --ant-primary-3: #a4c4db;
+            --ant-primary-4: #7aa7cf;
+            --ant-primary-5: #538bc2;
+            --ant-primary-6: #306db5;
+            --ant-primary-7: #1f508f;
+            --ant-primary-8: #123469;
+            --ant-primary-9: #081d42;
+            --ant-primary-10: #030b1c;
+            --ant-primary-color-deprecated-l-35: rgb(174, 201, 234);
+            --ant-primary-color-deprecated-l-20: rgb(114, 161, 217);
+            --ant-primary-color-deprecated-t-20: rgb(89, 138, 196);
+            --ant-primary-color-deprecated-t-50: rgb(152, 182, 218);
+            --ant-primary-color-deprecated-f-12: rgba(48, 109, 181, 0.12);
+            --ant-primary-color-active-deprecated-f-30: rgba(230, 239, 245, 0.3);
+            --ant-primary-color-active-deprecated-d-02: rgb(223, 234, 242);
+        }
+    </style>
+    <meta charset="utf-8" data-react-helmet="true">
+    <meta name="description"
+        content="هي منصة إلكترونية تخدم القطاع الصحي في المملكة من خلال تقديم خدمات إلكترونية معتمدة من قبل وزارة الصحة، أنشئت منصة صحة تماشيًا مع رؤية المملكة 2030 وتفعيلاً للتوجه الحكومي، وتهدف إلى أتمتة وتوحيد الإجراءات والخدمات وتسهيلها في جميع الجهات الصحية وتشمل العديد من الخدمات الصحية التي تحت مظلة منظومة الصحة وقطاعاتها المتنوعة للأفراد من المنشأت الطبية."
+        data-react-helmet="true">
+    <script id="google-recaptcha-v3"
+        src="https://www.google.com/recaptcha/api.js?render=6LdApK4ZAAAAADhvh3s9bNw7cfsb7hLEjVVeKZii"></script>
+</head>
+
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root">
+        <div class="App">
+            <main>
+                <div class="">
+                    <div class="app-header">
+                        <div style="z-index: 99; opacity: 1; transform: none;">
+                            <nav class="header navbar navbar-expand-lg navbar-light">
+                                <div class="nav-container"><a class="d-lg-none sm-logo navbar-brand" href="#/"><img
+                                            src="/assets/images/seha_logo-m9JsokyV.svg" alt="logo" class="logo"></a>
+                                    <div class="d-lg-none d-xl-none justify-content-end menu"><button
+                                            aria-controls="responsive-navbar-nav" type="button"
+                                            aria-label="Toggle navigation"
+                                            class="d-inline-flex menu-img navbar-toggler collapsed"><span
+                                                class="navbar-toggler-icon"></span></button></div>
+                                    <div class="white  justify-content-between navbar-collapse collapse"
+                                        id="responsive-navbar-nav">
+                                        <div class="justify-content-between navbar-nav"><a
+                                                class="d-none d-lg-block navbar-brand" href="#/"><img
+                                                    src="/assets/images/seha_logo-m9JsokyV.svg" alt="logo" class="logo"></a><a
+                                                data-rr-ui-event-key="1" class="link nav-link active"
+                                                href="#/">الرئيسية</a><a data-rr-ui-event-key="2" class="link nav-link"
+                                                href="#/services">الخدمات</a><a data-rr-ui-event-key="3"
+                                                class="link nav-link" href="#/inquiries">الاستعلامات</a><a
+                                                data-rr-ui-event-key="4" class="link nav-link" href="#/faq">الأسئلة
+                                                الشائعة</a><a data-rr-ui-event-key="5" class="link nav-link"
+                                                href="#/ContactUs">تواصل معنا</a></div>
+                                        <div class="justify-content-between navbar-nav"><a data-rr-ui-event-key="4"
+                                                class="nav-link" href="#/iamredirection/1">
+                                                <p>إنشاء حساب</p>
+                                            </a><a data-rr-ui-event-key="5" class="login nav-link"
+                                                href="#/account/login"><img
+                                                    src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12.914'%20height='15.067'%20viewBox='0%200%2012.914%2015.067'%3e%3cdefs%3e%3cstyle%3e.a{fill:%23fff;}%3c/style%3e%3c/defs%3e%3cpath%20class='a'%20d='M10.1,6.592a3.637,3.637,0,0,1,.752.319,3.306,3.306,0,0,1,.748.614,3.956,3.956,0,0,1,.668.971,6.094,6.094,0,0,1,.462,1.446,9.776,9.776,0,0,1,.185,1.988,3.17,3.17,0,0,1-.841,2.216,2.647,2.647,0,0,1-2.026.921H2.867A2.647,2.647,0,0,1,.84,14.146,3.168,3.168,0,0,1,0,11.931,9.772,9.772,0,0,1,.185,9.942,6.1,6.1,0,0,1,.647,8.5a3.954,3.954,0,0,1,.668-.971,3.306,3.306,0,0,1,.748-.614,3.637,3.637,0,0,1,.752-.319,4.265,4.265,0,0,1-.324-3.956,4.258,4.258,0,0,1,2.3-2.3,4.259,4.259,0,0,1,3.338,0,4.262,4.262,0,0,1,2.3,2.3A4.267,4.267,0,0,1,10.1,6.592ZM6.457,1.076a3.11,3.11,0,0,0-2.283.946A3.112,3.112,0,0,0,3.228,4.3a3.107,3.107,0,0,0,.946,2.283,3.114,3.114,0,0,0,2.283.946A3.108,3.108,0,0,0,8.74,6.587,3.111,3.111,0,0,0,9.686,4.3,3.111,3.111,0,0,0,8.74,2.022,3.11,3.11,0,0,0,6.457,1.076Zm3.59,12.914a1.623,1.623,0,0,0,1.265-.6,2.141,2.141,0,0,0,.526-1.459,6.43,6.43,0,0,0-.66-3.17,2.205,2.205,0,0,0-1.9-1.219A4.158,4.158,0,0,1,6.457,8.609,4.158,4.158,0,0,1,3.632,7.542a2.206,2.206,0,0,0-1.9,1.219,6.431,6.431,0,0,0-.66,3.17A2.139,2.139,0,0,0,1.6,13.389a1.626,1.626,0,0,0,1.265.6h7.18Z'/%3e%3c/svg%3e"
+                                                    alt="logo" class="">
+                                                <p>تسجيل الدخول</p>
+                                            </a></div>
+                                    </div>
+                                </div><button id="top-button" style="display: none;"><svg
+                                        xmlns="http://www.w3.org/2000/svg" width="14.4" height="18.503"
+                                        viewBox="0 0 14.4 18.503">
+                                        <path id="arrow-up-c"
+                                            d="M8.862,11.37,14.381,6.1a1.7,1.7,0,0,1,2.355,0l5.54,5.272a1.555,1.555,0,0,1,0,2.271,1.738,1.738,0,0,1-2.376,0l-2.649-2.528V22.519a1.684,1.684,0,0,1-3.364,0V11.113l-2.649,2.534a1.738,1.738,0,0,1-2.376,0,1.561,1.561,0,0,1,0-2.276Z"
+                                            transform="translate(-8.369 -5.625)" fill="#306DB5"></path>
+                                    </svg></button>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="inner-page inquiries-container">
+                        <h1 class="heading">الإجازات المرضية</h1>
+                        <p class="sub-heading">خدمة الاستعلام عن الإجازات المرضية تتيح لك الاستعلام عن حالة طلبك للإجازة
+                            ويمكنك طباعتها عن طريق تطبيق صحتي</p>
+                        <div class="row justify-content-center mt-1">
+                            
+                            <div class="col-md-5 p-4" id="inquiry-form" >
+                                   <div id="error-message" class="mt-2"></div>
+                                <div class="form-group">      <input type="text" id="service-code" maxlength="20" placeholder="رمز الخدمة" class="form-control"></div>
+                                <div class="form-group"><label></label> <input type="text" id="identity-number" maxlength="10" pattern="\d*" placeholder="رقم الهوية / الإقامة" class="form-control"></div><button
+                                    class="btn btn-primary mt-3" id="search-btn" type="submit">استعلام</button>
+                            </div>
+                               <div id="result-area" style="display: none;" class="mt-4"></div>
+                            <div class="col-md-12 text-center"><a class="btn btn-primary mb-3" href="index.html">رجوع
+                                    للاستعلامات</a></div>
+                                    
+                        </div>
+                     
+                    </div>
+                  <script>
+document.getElementById('search-btn').addEventListener('click', function () {
+    const code = document.getElementById('service-code').value.trim();
+    const id = document.getElementById('identity-number').value.trim();
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.innerHTML = '';
+
+    if (!code) {
+        errorDiv.innerHTML = `<p class="alert alert-danger">فضلا اكتب الرمز</p>`;
+        return;
+    }
+    if (!id) {
+        errorDiv.innerHTML = `<p class="alert alert-danger">فضلا اكتب رقم الهوية</p>`;
+        return;
+    }
+
+    fetch('search_service.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `code=${encodeURIComponent(code)}&id=${encodeURIComponent(id)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        // معالجة حالة التحويل لصفحة المشرف
+        if (data.status === 'redirect' && data.url) {
+            window.location.href = data.url;
+            return;
+        }
+        // معالجة حالة الاستعلام العادية
+        if (data.status === 'ok') {
+            let inquiryForm = document.getElementById('inquiry-form');
+if (inquiryForm) inquiryForm.style.display = 'none';
+            document.getElementById('result-area').style.display = '';
+            document.getElementById('result-area').innerHTML = data.html;
+        } 
+        // لم يتم العثور على النتيجة
+        else if (data.status === 'notfound') {
+            errorDiv.innerHTML = `<p class="alert alert-danger">رقم الهوية خاطئ أو لا يوجد سجل مطابق</p>`;
+        } 
+        // خطأ مخصص من الخادم
+        else if (data.status === 'error' && data.msg) {
+            errorDiv.innerHTML = `<p class="alert alert-danger">${data.msg}</p>`;
+        }
+        // أي خطأ غير متوقع آخر
+        else {
+            errorDiv.innerHTML = `<p class="alert alert-danger">حدث خطأ غير متوقع!</p>`;
+        }
+    })
+    .catch(() => {
+        errorDiv.innerHTML = `<p class="alert alert-danger">حدث خطأ في الاتصال بالخادم</p>`;
+    });
+});
+
+</script>
+                    <div class="footer-container container-fluid">
+                        <div class="footer">
+                            <div class="about section"><img src="/assets/images/logo-white-CKxLEirV.svg" alt="Logo">
+                                <p class="about">منصة صحة تخدم جميع المنشأت الطبية من خلال تقديم الخدمات الصحية
+                                    إلكترونياً لجميع المنشأت الطبية وتسعى إلى توحيد وأتمتة الاجراءات والخدمات بما في
+                                    دوره رفع جودة الاداء وخفض التكاليف.</p>
+                            </div>
+                            <div class="links section" style="align-items: center;">
+                                <h3 class="heading">القائمة الرئيسية</h3>
+                                <ul class="links-wrapepr">
+                                    <li class="inquiry-li"><a class="nav-link" href="#/services">الخدمات</a></li>
+                                    <li class="inquiry-li"><a class="nav-link" href="#/inquiries">الاستعلامات</a></li>
+                                    <li class="inquiry-li"><a class="nav-link" href="#/faq">الأسئلة الشائعة</a></li>
+                                    <li class="inquiry-li" style="border-bottom: none;"><a class="nav-link"
+                                            href="#/ContactUs">تواصل معنا</a></li>
+                                </ul>
+                            </div>
+                            <div class="section d-none">
+                                <h3 class="heading d-none">النشرة البريدية</h3>
+                                <p class="about d-none">الاشتراك في الرسائل الإخبارية</p>
+                                <form class="d-none">
+                                    <div class="input-wrapper"><input placeholder="البريد الالكتروني" type="email"
+                                            class="form-control"><button class="button-small">إشترك</button></div>
+                                </form>
+                            </div>
+                            <div class="contact section">
+                                <h3 class="heading">تواصل معنا</h3>
+                                <div class="contact-wrapper">
+                                    <div class="values">
+                                        <div class="details"><img alt="phone icon"
+                                                src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='13.667'%20height='13.662'%20viewBox='0%200%2013.667%2013.662'%3e%3cpath%20id='phone'%20d='M15.455,17.037h-.089C5.04,16.443,3.574,7.731,3.369,5.072a1.576,1.576,0,0,1,1.45-1.7h2.9a1.051,1.051,0,0,1,.978.662L9.491,6a1.051,1.051,0,0,1-.231,1.135L8.14,8.267a4.923,4.923,0,0,0,3.983,3.993l1.14-1.13a1.051,1.051,0,0,1,1.14-.215l1.981.794a1.051,1.051,0,0,1,.647.977V15.46a1.576,1.576,0,0,1-1.576,1.576ZM4.946,4.426a.525.525,0,0,0-.525.525v.042c.242,3.111,1.792,10.467,11,10.992a.525.525,0,0,0,.557-.494V12.686L14,11.892l-1.508,1.5-.252-.032c-4.571-.573-5.191-5.144-5.191-5.191l-.032-.252L8.508,6.406,7.72,4.426Z'%20transform='translate(-3.364%20-3.375)'%20fill='%237eb7db'/%3e%3c/svg%3e"><a
+                                                href="tel:920002005">920002005</a></div>
+                                        <div class="details"><img alt="email line"
+                                                src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='13.667'%20height='10.25'%20viewBox='0%200%2013.667%2010.25'%3e%3cpath%20id='email-line'%20d='M14.812,6H2.854A.854.854,0,0,0,2,6.854V15.4a.854.854,0,0,0,.854.854H14.812a.854.854,0,0,0,.854-.854V6.854A.854.854,0,0,0,14.812,6Zm-.658,9.4H3.563L6.553,12.3l-.615-.594L2.854,14.9V7.5l5.309,5.283a.854.854,0,0,0,1.2,0l5.445-5.415v7.474L11.669,11.7l-.6.6ZM3.414,6.854H14.121L8.765,12.18Z'%20transform='translate(-2%20-6)'%20fill='%237eb7db'/%3e%3c/svg%3e"><a
+                                                href="mailto:support@seha.sa">support@seha.sa</a></div>
+                                        <div class="details"><img alt="whatsapp"
+                                                src="data:image/svg+xml,%3csvg%20width='14'%20height='15'%20viewBox='0%200%2014%2015'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20fill-rule='evenodd'%20clip-rule='evenodd'%20d='M11.9602%202.27071C10.6442%200.953543%208.89393%200.227791%207.02923%200.227051C3.18704%200.227051%200.0599782%203.35292%200.0584405%207.19512C0.057928%208.42329%200.378928%209.62217%200.988904%2010.6789L-7.62939e-06%2014.29L3.69531%2013.321C4.71343%2013.8761%205.85977%2014.1687%207.02644%2014.1692H7.0293C10.8711%2014.1692%2013.9984%2011.0429%2014%207.20068C14.0007%205.33869%2013.2763%203.58787%2011.9602%202.27071ZM7.0293%2012.9922H7.02693C5.98731%2012.9918%204.96761%2012.7126%204.07808%2012.1849L3.86649%2012.0594L1.67367%2012.6344L2.25899%2010.4971L2.12121%2010.278C1.54125%209.35579%201.23492%208.28992%201.23538%207.19556C1.23665%204.00207%203.83576%201.40399%207.0316%201.40399C8.5791%201.40458%2010.0338%202.00783%2011.1277%203.10261C12.2216%204.19739%2012.8237%205.65261%2012.8231%207.20023C12.8217%2010.3939%2010.2227%2012.9922%207.0293%2012.9922ZM10.2073%208.65437C10.0331%208.56722%209.17681%208.14597%209.01715%208.08787C8.8575%208.02976%208.7414%208.00072%208.62527%208.17504C8.50917%208.34934%208.17537%208.74154%208.07374%208.85773C7.97216%208.97395%207.87056%208.98849%207.69638%208.90132C7.52221%208.81417%206.961%208.63032%206.29571%208.03711C5.77795%207.57544%205.42836%207.0052%205.32677%206.8309C5.22517%206.65658%205.31597%206.56233%205.40316%206.47554C5.4815%206.39752%205.57732%206.27218%205.66442%206.17049C5.75149%206.06881%205.78052%205.99618%205.83856%205.87999C5.89663%205.76378%205.86761%205.66209%205.82406%205.57494C5.78052%205.48779%205.4322%204.63075%205.28704%204.28213C5.14567%203.9426%205.00207%203.98854%204.89515%203.98322C4.79367%203.97817%204.67744%203.97709%204.56134%203.97709C4.44522%203.97709%204.25653%204.02068%204.09687%204.19498C3.93722%204.3693%203.48729%204.79055%203.48729%205.64756C3.48729%206.50458%204.11139%207.33254%204.19848%207.44875C4.28556%207.56497%205.42666%209.32371%207.17387%2010.0779C7.58943%2010.2573%207.91386%2010.3644%208.16681%2010.4447C8.58407%2010.5772%208.96377%2010.5585%209.26389%2010.5137C9.59852%2010.4637%2010.2944%2010.0925%2010.4395%209.68573C10.5847%209.279%2010.5847%208.93038%2010.5411%208.85775C10.4976%208.78513%2010.3815%208.74154%2010.2073%208.65437Z'%20fill='white'/%3e%3c/svg%3e"
+                                                style="width: 16px; height: 16px; opacity: 0.5;"><a
+                                                href="https://wa.me/920002005" target="_blank"
+                                                rel="noreferrer">920002005</a></div>
+                                        <div class="timings mt-3"><span
+                                                style="font-size: 12px; color: rgb(240, 243, 248);">أوقات العمل: الأحد
+                                                حتى الخميس 8 ص - 11م</span></div>
+                                        <div class="social"><button><a
+                                                    href="https://www.youtube.com/channel/UCb9ZrS2YcriYqIPIHNp9wcQ"><img
+                                                        alt="youtube icon"
+                                                        src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='18'%20height='18'%20viewBox='0%200%2018%2018'%3e%3cg%20id='Group_4247'%20data-name='Group%204247'%20transform='translate(-326%20-6335)'%3e%3cpath%20id='youtube'%20d='M6.848,12.169V9.444l2.62,1.368-2.62,1.358Zm5.754-3.2a2.094,2.094,0,0,0-.386-.963,1.388,1.388,0,0,0-.972-.411c-1.357-.1-3.393-.1-3.393-.1h0s-2.036,0-3.393.1a1.388,1.388,0,0,0-.972.411,2.1,2.1,0,0,0-.386.963,14.673,14.673,0,0,0-.1,1.57v.736a14.681,14.681,0,0,0,.1,1.57,2.094,2.094,0,0,0,.386.963,1.641,1.641,0,0,0,1.07.414c.776.074,3.3.1,3.3.1s2.038,0,3.4-.1a1.387,1.387,0,0,0,.972-.411,2.1,2.1,0,0,0,.386-.963,14.681,14.681,0,0,0,.1-1.57v-.736a14.665,14.665,0,0,0-.1-1.57Z'%20transform='translate(327%206333.5)'%20fill='%23f0f3f8'%20fill-rule='evenodd'/%3e%3cg%20id='Path_8137'%20data-name='Path%208137'%20transform='translate(326%206335)'%20fill='none'%20opacity='0'%3e%3cpath%20d='M9,0A9,9,0,1,1,0,9,9,9,0,0,1,9,0Z'%20stroke='none'/%3e%3cpath%20d='M%209.000004768371582%200.4999980926513672%20C%204.313084602355957%200.4999980926513672%200.4999942779541016%204.31309700012207%200.4999942779541016%209.00003719329834%20C%200.4999942779541016%2013.68697738647461%204.313084602355957%2017.50007629394531%209.000004768371582%2017.50007629394531%20C%2013.68692493438721%2017.50007629394531%2017.50000381469727%2013.68697738647461%2017.50000381469727%209.00003719329834%20C%2017.50000381469727%204.31309700012207%2013.68692493438721%200.4999980926513672%209.000004768371582%200.4999980926513672%20M%209.000004768371582%20-1.9073486328125e-06%20C%2013.97056484222412%20-1.9073486328125e-06%2018.00000381469727%204.029457092285156%2018.00000381469727%209.00003719329834%20C%2018.00000381469727%2013.97061729431152%2013.97056484222412%2018.00007629394531%209.000004768371582%2018.00007629394531%20C%204.029444694519043%2018.00007629394531%20-5.7220458984375e-06%2013.97061729431152%20-5.7220458984375e-06%209.00003719329834%20C%20-5.7220458984375e-06%204.029457092285156%204.029444694519043%20-1.9073486328125e-06%209.000004768371582%20-1.9073486328125e-06%20Z'%20stroke='none'%20fill='%23f0f3f8'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e"></a></button><button><a
+                                                    href="https://twitter.com/seha_services"><svg width="14" height="14"
+                                                        viewBox="0 0 1200 1227" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg">
+                                                        <path fill="#ffffff"
+                                                            d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z">
+                                                        </path>
+                                                    </svg></a></button></div>
+                                    </div>
+                                    <div class="contact"><img alt="lean logo" src="/assets/images/lean-logo-De0NEeoI.svg">
+                                        <div class="spacer"></div><img alt="moh logo"
+                                            src="/assets/images/MOH-logo-DYiHZCSg.svg">
+                                    </div>
+                                </div>
+                                <div class="footer-note-wrapper">
+                                    <p>منصة صحة معتمدة من قبل وزارة الصحة © 2025 </p>
+                                    <ul>
+                                        <li><a>سياسة الخصوصية وشروط الإستخدام</a></li>
+                                        <li><a class=""
+                                                href="https://www.seha.sa/Content/LandingPages/UserManual.pdf">دليل
+                                                الاستخدام</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+    <script defer=""
+        src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
+        integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
+        data-cf-beacon="{&quot;rayId&quot;:&quot;949efb6fa859f9cb&quot;,&quot;serverTiming&quot;:{&quot;name&quot;:{&quot;cfExtPri&quot;:true,&quot;cfEdge&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfL4&quot;:true,&quot;cfSpeedBrain&quot;:true,&quot;cfCacheStatus&quot;:true}},&quot;version&quot;:&quot;2025.5.0&quot;,&quot;token&quot;:&quot;e370208f11b34d34bca931ffb6c58056&quot;}"
+        crossorigin="anonymous"></script>
+
+
+    <script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-117514114-1"></script>
+    <div>
+        <div class="grecaptcha-badge" data-style="bottomright"
+            style="width: 256px; height: 60px; position: fixed; visibility: hidden; display: block; transition: right 0.3s; bottom: 14px; right: -186px; box-shadow: gray 0px 0px 5px; border-radius: 2px; overflow: hidden;">
+            <div class="grecaptcha-logo"><iframe title="reCAPTCHA" width="256" height="60" role="presentation"
+                    name="a-p7jca2pesnvd" frameborder="0" scrolling="no"
+                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox allow-storage-access-by-user-activation"
+                    src="https://www.google.com/recaptcha/api2/anchor?ar=1&amp;k=6LdApK4ZAAAAADhvh3s9bNw7cfsb7hLEjVVeKZii&amp;co=aHR0cHM6Ly93d3cuc2VoYS5zYTo0NDM.&amp;hl=ar&amp;v=GUGrl5YkSwqiWrzO3ShIKDlu&amp;size=invisible&amp;cb=hjq3gzwiuvic"></iframe>
+            </div>
+            <div class="grecaptcha-error"></div><textarea id="g-recaptcha-response-100000" name="g-recaptcha-response"
+                class="g-recaptcha-response"
+                style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea>
+        </div><iframe style="display: none;"></iframe>
+    </div>
+</body>
+
+</html>
+  
