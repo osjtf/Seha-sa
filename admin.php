@@ -686,6 +686,18 @@ $res = $conn->query("SELECT p.id, p.name, p.identity_number,
 while ($row = $res->fetch_assoc()) {
   $payments[] = $row;
 }
+
+// قوائم للإشعارات في الواجهة (الإجازات غير المدفوعة والاستعلامات الجديدة)
+$unpaid_js = [];
+foreach ($leaves as $lv) {
+  if (!$lv['is_paid']) {
+    $unpaid_js[] = ['id' => $lv['id'], 'code' => $lv['service_code']];
+  }
+}
+$query_notifs = [];
+foreach ($queries as $q) {
+  $query_notifs[] = ['id' => $q['qid'], 'code' => $q['service_code'], 'leave_id' => $q['leave_id']];
+}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -979,6 +991,9 @@ while ($row = $res->fetch_assoc()) {
       .action-btn {
         font-size: 0.75rem;
         padding: 2px 4px;
+        display: block;
+        width: 100%;
+        margin-bottom: 4px;
       }
     }
   </style>
@@ -1036,9 +1051,16 @@ while ($row = $res->fetch_assoc()) {
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body">
-      <ul id="notificationsList" class="list-group list-group-flush">
-        <li class="list-group-item text-center">لا إشعارات</li>
-      </ul>
+      <div class="mb-2 d-flex justify-content-between align-items-center">
+        <span>إشعارات المدفوعات</span>
+        <button class="btn btn-sm btn-light" id="clearPaymentNotifs">مسح الكل</button>
+      </div>
+      <ul id="paymentNotifications" class="list-group mb-3"></ul>
+      <div class="mb-2 d-flex justify-content-between align-items-center">
+        <span>إشعارات الاستعلامات</span>
+        <button class="btn btn-sm btn-light" id="clearQueryNotifs">مسح الكل</button>
+      </div>
+      <ul id="queryNotifications" class="list-group"></ul>
     </div>
   </div>
 
@@ -1902,6 +1924,11 @@ while ($row = $res->fetch_assoc()) {
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <script>
+    const unpaidForJS = <?= json_encode($unpaid_js, JSON_UNESCAPED_UNICODE) ?>;
+    const queryNotifsData = <?= json_encode($query_notifs, JSON_UNESCAPED_UNICODE) ?>;
+  </script>
+
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       // تفعيل DataTables
       if (window.jQuery && $.fn.DataTable) {
@@ -1915,7 +1942,16 @@ while ($row = $res->fetch_assoc()) {
         $('#adminsTable').DataTable(dtOpts);
       }
 
-      // تنبيه للإجازات غير المدفوعة بعد دقيقتين
+      // إدراج الإشعارات المبدئية من المتغيرات الآتية
+      unpaidForJS.forEach(item => {
+        const row = document.querySelector(`#leavesTable tr[data-id="${item.id}"]`);
+        if (row) addPaymentNotification(item.id, item.code, row);
+      });
+      queryNotifsData.forEach(q => {
+        addQueryNotification(q.code, q.leave_id);
+      });
+
+      // تنبيه للإجازات غير المدفوعة بعد دقيقتين (إلى لوحة الإشعارات فقط)
       document.querySelectorAll('#leavesTable tbody tr').forEach(row => {
         const paid = row.querySelector('.cell-paid-status .badge.bg-success');
         const createdCell = row.querySelector('.cell-created');
@@ -1938,13 +1974,38 @@ while ($row = $res->fetch_assoc()) {
         }
       }
 
-      function addNotification(text) {
-        const list = document.getElementById('notificationsList');
+      const paymentList = document.getElementById('paymentNotifications');
+      const queryList = document.getElementById('queryNotifications');
+
+      function updateNotifCount() {
+        const c = paymentList.children.length + queryList.children.length;
+        document.getElementById('notifCount').textContent = c;
+      }
+
+      function addPaymentNotification(id, code, row) {
         const li = document.createElement('li');
+        li.dataset.id = id;
+        li.dataset.code = code;
         li.className = 'list-group-item';
-        li.textContent = text;
-        list.prepend(li);
-        document.getElementById('notifCount').textContent = list.querySelectorAll('li').length;
+        li.innerHTML = `<div class="d-flex justify-content-between align-items-center">
+          <span>الإجازة ${code} غير مدفوعة</span>
+          <div>
+            <button class="btn btn-success btn-sm me-1 btn-pay-notif">تسديد</button>
+            <button class="btn btn-secondary btn-sm btn-remind-notif">تذكير</button>
+          </div>
+        </div>`;
+        paymentList.prepend(li);
+        updateNotifCount();
+      }
+
+      function addQueryNotification(code, leaveId) {
+        const li = document.createElement('li');
+        li.dataset.leaveId = leaveId;
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `<span>استعلام جديد للإجازة ${code}</span>
+          <button class="btn btn-info btn-sm btn-view-notif">عرض</button>`;
+        queryList.prepend(li);
+        updateNotifCount();
       }
 
       function markLeavePaid(id, row) {
@@ -1965,36 +2026,10 @@ while ($row = $res->fetch_assoc()) {
 
       function scheduleUnpaidNotification(row, created) {
         const now = Date.now();
-        const delay = Math.max(0, 2 * 60 * 1000 - (now - created.getTime()));
-        setTimeout(() => notifyUnpaid(row), delay);
-      }
-
-      function notifyUnpaid(row) {
         const id = row.getAttribute('data-id');
         const code = row.querySelector('.cell-service').textContent.trim();
-        addNotification('إجازة ' + code + ' غير مدفوعة');
-        Swal.fire({
-          title: 'الإجازة ' + code + ' غير مدفوعة',
-          showDenyButton: true,
-          confirmButtonText: 'تسجيل كمدفوعة',
-          denyButtonText: 'تذكيري لاحقاً'
-        }).then(result => {
-          if (result.isConfirmed) {
-            markLeavePaid(id, row);
-          } else if (result.isDenied) {
-            Swal.fire({
-              title: 'بعد كم دقيقة؟',
-              input: 'number',
-              inputAttributes: { min: 1 },
-              confirmButtonText: 'تأكيد'
-            }).then(res => {
-              const mins = parseInt(res.value);
-              if (mins > 0) {
-                setTimeout(() => notifyUnpaid(row), mins * 60 * 1000);
-              }
-            });
-          }
-        });
+        const delay = Math.max(0, 2 * 60 * 1000 - (now - created.getTime()));
+        setTimeout(() => addPaymentNotification(id, code, row), delay);
       }
 
       // ===== إظهار/إخفاء مؤشر التحميل =====
@@ -3308,6 +3343,44 @@ while ($row = $res->fetch_assoc()) {
       });
       document.getElementById('btn-reset-queries-dates').addEventListener('click', () => {
         resetDateFilter('queriesTable', originalQueriesRows, 'filter_q_from_date', 'filter_q_to_date');
+      });
+
+      // أحداث الإشعارات
+      document.getElementById('clearPaymentNotifs').addEventListener('click', () => {
+        paymentList.innerHTML = '';
+        updateNotifCount();
+      });
+      document.getElementById('clearQueryNotifs').addEventListener('click', () => {
+        queryList.innerHTML = '';
+        updateNotifCount();
+      });
+      paymentList.addEventListener('click', e => {
+        if (e.target.classList.contains('btn-pay-notif')) {
+          const li = e.target.closest('li');
+          const id = li.dataset.id;
+          const row = document.querySelector(`#leavesTable tr[data-id="${id}"]`);
+          if (row) markLeavePaid(id, row);
+          li.remove();
+          updateNotifCount();
+        } else if (e.target.classList.contains('btn-remind-notif')) {
+          const li = e.target.closest('li');
+          const id = li.dataset.id;
+          const code = li.dataset.code;
+          const row = document.querySelector(`#leavesTable tr[data-id="${id}"]`);
+          const mins = parseInt(prompt('بعد كم دقيقة؟', '5')); 
+          if (mins > 0) {
+            setTimeout(() => addPaymentNotification(id, code, row), mins * 60000);
+          }
+          li.remove();
+          updateNotifCount();
+        }
+      });
+      queryList.addEventListener('click', e => {
+        if (e.target.classList.contains('btn-view-notif')) {
+          const li = e.target.closest('li');
+          const lid = li.dataset.leaveId;
+          showQueriesDetails(lid);
+        }
       });
 
     });
