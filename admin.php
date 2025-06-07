@@ -378,6 +378,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $is_comp = isset($_POST['is_companion_edit']) && $_POST['is_companion_edit'] === '1' ? 1 : 0;
     $comp_name = $is_comp ? trim($_POST['companion_name_edit']) : null;
     $comp_rel = $is_comp ? trim($_POST['companion_relation_edit']) : null;
+    $payment_amount = isset($_POST['payment_amount_edit']) ? floatval($_POST['payment_amount_edit']) : 0;
+    $is_paid = isset($_POST['is_paid_edit']) && $_POST['is_paid_edit'] === '1' ? 1 : 0;
 
     $updated_at = date('Y-m-d H:i:s');
 
@@ -620,6 +622,7 @@ while ($row = $res->fetch_assoc()) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   <style>
     /* ======================== متغيرات Light & Dark ======================== */
@@ -892,6 +895,10 @@ while ($row = $res->fetch_assoc()) {
 
       .modal-dialog {
         max-width: 98vw !important;
+      }
+
+      .table-responsive {
+        overflow-x: auto;
       }
     }
   </style>
@@ -1719,6 +1726,7 @@ while ($row = $res->fetch_assoc()) {
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
@@ -1726,10 +1734,13 @@ while ($row = $res->fetch_assoc()) {
     document.addEventListener('DOMContentLoaded', () => {
       // تفعيل DataTables
       if (window.jQuery && $.fn.DataTable) {
-        $('#leavesTable').DataTable({ paging: true, searching: false, info: false });
-        $('#archivedTable').DataTable({ paging: true, searching: false, info: false });
-        $('#queriesTable').DataTable({ paging: true, searching: false, info: false });
-        $('#paymentsTable').DataTable({ paging: true, searching: false, info: false });
+        const dtOpts = { paging: true, searching: false, info: false, responsive: true,
+          language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json' }
+        };
+        $('#leavesTable').DataTable(dtOpts);
+        $('#archivedTable').DataTable(dtOpts);
+        $('#queriesTable').DataTable(dtOpts);
+        $('#paymentsTable').DataTable(dtOpts);
       }
 
       // تنبيه للمدفوعات المتأخرة
