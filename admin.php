@@ -90,6 +90,8 @@ $conn->query("CREATE TABLE IF NOT EXISTS sick_leaves (
   is_companion TINYINT(1) NOT NULL DEFAULT 0,
   companion_name VARCHAR(100) DEFAULT NULL,
   companion_relation VARCHAR(100) DEFAULT NULL,
+  payment_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+  is_paid TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL,
   updated_at DATETIME DEFAULT NULL,
   deleted_at DATETIME DEFAULT NULL,
@@ -314,14 +316,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $is_comp = isset($_POST['is_companion']) && $_POST['is_companion'] === '1' ? 1 : 0;
     $comp_name = $is_comp ? trim($_POST['companion_name']) : null;
     $comp_rel = $is_comp ? trim($_POST['companion_relation']) : null;
+    $payment_amount = isset($_POST['payment_amount']) ? floatval($_POST['payment_amount']) : 0;
+    $is_paid = isset($_POST['is_paid']) && $_POST['is_paid'] === '1' ? 1 : 0;
 
     $created_at = date('Y-m-d H:i:s');
 
-    $stmt = $conn->prepare("INSERT INTO sick_leaves 
-      (service_code, patient_id, doctor_id, issue_date, start_date, end_date, days_count, is_companion, companion_name, companion_relation, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO sick_leaves
+      (service_code, patient_id, doctor_id, issue_date, start_date, end_date, days_count, is_companion, companion_name, companion_relation, payment_amount, is_paid, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param(
-      "siisssiisss",
+      "siisssiissdis",
       $service_code,
       $pid,
       $did,
@@ -332,14 +336,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       $is_comp,
       $comp_name,
       $comp_rel,
+      $payment_amount,
+      $is_paid,
       $created_at
     );
     $stmt->execute();
     $new_id = $stmt->insert_id;
     $stmt->close();
 
-    $lv = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count, 
+    $lv = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count,
                                sl.is_companion, sl.companion_name, sl.companion_relation,
+                               sl.payment_amount, sl.is_paid,
                                DATE_FORMAT(sl.created_at, '%Y-%m-%d %r') AS created_at,
                                p.name AS patient_name, p.identity_number, d.name AS doctor_name, d.title AS doctor_title,
                                (SELECT COUNT(*) FROM leave_queries WHERE leave_id=sl.id) AS queries_count
@@ -371,6 +378,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $is_comp = isset($_POST['is_companion_edit']) && $_POST['is_companion_edit'] === '1' ? 1 : 0;
     $comp_name = $is_comp ? trim($_POST['companion_name_edit']) : null;
     $comp_rel = $is_comp ? trim($_POST['companion_relation_edit']) : null;
+    $payment_amount = isset($_POST['payment_amount_edit']) ? floatval($_POST['payment_amount_edit']) : 0;
+    $is_paid = isset($_POST['is_paid_edit']) && $_POST['is_paid_edit'] === '1' ? 1 : 0;
 
     $updated_at = date('Y-m-d H:i:s');
 
@@ -386,12 +395,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       exit;
     }
 
-    // هنا أصلحنا bind_param ليكون "ssssiisssi" بدون مسافات
-    $stmt = $conn->prepare("UPDATE sick_leaves SET 
-      service_code=?, issue_date=?, start_date=?, end_date=?, days_count=?, is_companion=?, companion_name=?, companion_relation=?, updated_at=?
+    $stmt = $conn->prepare("UPDATE sick_leaves SET
+      service_code=?, issue_date=?, start_date=?, end_date=?, days_count=?, is_companion=?, companion_name=?, companion_relation=?, payment_amount=?, is_paid=?, updated_at=?
       WHERE id=?");
     $stmt->bind_param(
-      "ssssiisssi",
+      "ssssiissdisi",
       $service_code,
       $issue_date,
       $start,
@@ -400,14 +408,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
       $is_comp,
       $comp_name,
       $comp_rel,
+      $payment_amount,
+      $is_paid,
       $updated_at,
       $lid
     );
     $stmt->execute();
     $stmt->close();
 
-    $lv = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count, 
+    $lv = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count,
                                sl.is_companion, sl.companion_name, sl.companion_relation,
+                               sl.payment_amount, sl.is_paid,
                                DATE_FORMAT(sl.updated_at, '%Y-%m-%d %r') AS updated_at,
                                p.name AS patient_name, p.identity_number, d.name AS doctor_name, d.title AS doctor_title,
                                (SELECT COUNT(*) FROM leave_queries WHERE leave_id=sl.id) AS queries_count
@@ -540,8 +551,9 @@ while ($row = $res->fetch_assoc()) {
 
 // ==== 9. جلب بيانات الإجازات النشطة (للجدول الرئيسي) ====
 $leaves = [];
-$res = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count, 
+$res = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count,
                              sl.is_companion, sl.companion_name, sl.companion_relation,
+                             sl.payment_amount, sl.is_paid,
                              DATE_FORMAT(sl.created_at, '%Y-%m-%d %r') AS created_at,
                              p.name AS patient_name, p.identity_number, d.name AS doctor_name, d.title AS doctor_title,
                              (SELECT COUNT(*) FROM leave_queries WHERE leave_id=sl.id) AS queries_count
@@ -556,8 +568,9 @@ while ($row = $res->fetch_assoc()) {
 
 // ==== 10. جلب بيانات الأرشيف (الإجازات المحذوفة) ====
 $archived = [];
-$res = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count, 
+$res = $conn->query("SELECT sl.id, sl.service_code, sl.issue_date, sl.start_date, sl.end_date, sl.days_count,
                              sl.is_companion, sl.companion_name, sl.companion_relation,
+                             sl.payment_amount, sl.is_paid,
                              DATE_FORMAT(sl.deleted_at, '%Y-%m-%d %r') AS deleted_at,
                              p.name AS patient_name, p.identity_number, d.name AS doctor_name, d.title AS doctor_title,
                              (SELECT COUNT(*) FROM leave_queries WHERE leave_id=sl.id) AS queries_count
@@ -581,6 +594,22 @@ $res = $conn->query("SELECT lq.id AS qid, lq.leave_id, sl.service_code, p.name A
 while ($row = $res->fetch_assoc()) {
   $queries[] = $row;
 }
+
+// ==== 12. ملخص المدفوعات لكل مريض ====
+$payments = [];
+$res = $conn->query("SELECT p.id, p.name, p.identity_number,
+                            COUNT(sl.id) AS leaves_count,
+                            SUM(CASE WHEN sl.is_paid=1 THEN 1 ELSE 0 END) AS paid_count,
+                            SUM(CASE WHEN sl.is_paid=0 THEN 1 ELSE 0 END) AS unpaid_count,
+                            SUM(CASE WHEN sl.is_paid=1 THEN sl.payment_amount ELSE 0 END) AS paid_amount,
+                            SUM(CASE WHEN sl.is_paid=0 THEN sl.payment_amount ELSE 0 END) AS unpaid_amount
+                     FROM patients p
+                     LEFT JOIN sick_leaves sl ON sl.patient_id=p.id
+                     GROUP BY p.id, p.name, p.identity_number
+                     ORDER BY p.name ASC");
+while ($row = $res->fetch_assoc()) {
+  $payments[] = $row;
+}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -592,6 +621,9 @@ while ($row = $res->fetch_assoc()) {
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
   <style>
     /* ======================== متغيرات Light & Dark ======================== */
     :root {
@@ -864,6 +896,10 @@ while ($row = $res->fetch_assoc()) {
       .modal-dialog {
         max-width: 98vw !important;
       }
+
+      .table-responsive {
+        overflow-x: auto;
+      }
     }
   </style>
 </head>
@@ -943,6 +979,43 @@ while ($row = $res->fetch_assoc()) {
       <div class="col stats-box">أرشيف<br><?= $stats['archived'] ?></div>
       <div class="col stats-box">المرضى<br><?= $stats['patients'] ?></div>
       <div class="col stats-box">الأطباء<br><?= $stats['doctors'] ?></div>
+    </div>
+
+    <!-- ملخص المدفوعات -->
+    <div class="card card-custom mb-3">
+      <div class="card-header" style="background: var(--primary-color); color:#fff;">
+        ملخص المدفوعات
+      </div>
+      <div class="card-body p-2">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover text-center" id="paymentsTable">
+            <thead class="table-light">
+              <tr>
+                <th>المريض</th>
+                <th>الهوية</th>
+                <th>عدد الإجازات</th>
+                <th>مدفوعة</th>
+                <th>غير مدفوعة</th>
+                <th>إجمالي المبلغ المدفوع</th>
+                <th>المتبقي</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($payments as $pm): ?>
+                <tr>
+                  <td><?= htmlspecialchars($pm['name']) ?></td>
+                  <td><?= htmlspecialchars($pm['identity_number']) ?></td>
+                  <td><?= $pm['leaves_count'] ?></td>
+                  <td><?= $pm['paid_count'] ?></td>
+                  <td><?= $pm['unpaid_count'] ?></td>
+                  <td><?= $pm['paid_amount'] ?></td>
+                  <td><?= $pm['unpaid_amount'] ?></td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- أزرار الوصول السريع (الأطباء، المرضى، سجل الاستعلامات) -->
@@ -1068,6 +1141,18 @@ while ($row = $res->fetch_assoc()) {
           <div class="invalid-feedback">حدد عدد الأيام أو ادخله يدويًا.</div>
         </div>
 
+        <div class="col-md-4">
+          <label>مبلغ الإجازة (ر.س)</label>
+          <input type="number" step="0.01" name="payment_amount" class="form-control" value="0">
+          <div class="invalid-feedback">أدخل مبلغ الإجازة.</div>
+        </div>
+        <div class="col-md-2 d-flex align-items-center">
+          <div class="form-check mt-4">
+            <input class="form-check-input" type="checkbox" name="is_paid" id="is_paid" value="1">
+            <label class="form-check-label" for="is_paid">مدفوع؟</label>
+          </div>
+        </div>
+
         <!-- مرافق أم لا -->
         <div class="col-md-2">
           <div class="form-check mt-4">
@@ -1109,6 +1194,15 @@ while ($row = $res->fetch_assoc()) {
           <button class="btn btn-light btn-sm" id="sortLeavesReset">
             <i class="bi bi-arrow-repeat"></i> افتراضي
           </button>
+          <button class="btn btn-light btn-sm" id="exportPDF">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+          </button>
+          <button class="btn btn-light btn-sm" id="exportExcel">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+          </button>
+          <button class="btn btn-light btn-sm" id="printTable">
+            <i class="bi bi-printer"></i> طباعة
+          </button>
         </div>
       </div>
       <div class="card-body">
@@ -1145,6 +1239,8 @@ while ($row = $res->fetch_assoc()) {
                 <th>من</th>
                 <th>إلى</th>
                 <th>الأيام</th>
+                <th>المبلغ</th>
+                <th>الحالة</th>
                 <th>نوع الإجازة</th>
                 <th>عدد الاستعلامات</th>
                 <th>تاريخ الإضافة</th>
@@ -1165,6 +1261,10 @@ while ($row = $res->fetch_assoc()) {
                   <td><?= htmlspecialchars($lv['start_date']) ?></td>
                   <td><?= htmlspecialchars($lv['end_date']) ?></td>
                   <td><?= htmlspecialchars($lv['days_count']) ?></td>
+                  <td><?= htmlspecialchars($lv['payment_amount']) ?></td>
+                  <td class="cell-paid-status">
+                    <?= $lv['is_paid'] ? '<span class="badge bg-success">مدفوع</span>' : '<span class="badge bg-secondary">غير مدفوع</span>' ?>
+                  </td>
                   <td>
                     <?= $lv['is_companion']
                       ? '<span class="badge bg-warning text-dark">مرافق</span>'
@@ -1184,7 +1284,7 @@ while ($row = $res->fetch_assoc()) {
               <?php endforeach; ?>
               <?php if (empty($leaves)): ?>
                 <tr class="no-results">
-                  <td colspan="14">لا توجد إجازات نشطة حاليًا.</td>
+                  <td colspan="16">لا توجد إجازات نشطة حاليًا.</td>
                 </tr>
               <?php endif; ?>
             </tbody>
@@ -1210,6 +1310,15 @@ while ($row = $res->fetch_assoc()) {
           </button>
           <button class="btn btn-danger btn-sm" id="btn-delete-all-archived">
             <i class="bi bi-trash3-fill"></i> حذف الكل
+          </button>
+          <button class="btn btn-light btn-sm" id="exportArchPDF">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+          </button>
+          <button class="btn btn-light btn-sm" id="exportArchExcel">
+            <i class="bi bi-file-earmark-spreadsheet"></i> Excel
+          </button>
+          <button class="btn btn-light btn-sm" id="printArchTable">
+            <i class="bi bi-printer"></i> طباعة
           </button>
         </div>
       </div>
@@ -1250,6 +1359,8 @@ while ($row = $res->fetch_assoc()) {
                 <th>من</th>
                 <th>إلى</th>
                 <th>الأيام</th>
+                <th>المبلغ</th>
+                <th>الحالة</th>
                 <th>نوع الإجازة</th>
                 <th>عدد الاستعلامات</th>
                 <th>تاريخ الحذف</th>
@@ -1259,7 +1370,7 @@ while ($row = $res->fetch_assoc()) {
             <tbody>
               <?php if (empty($archived)): ?>
                 <tr class="no-results">
-                  <td colspan="14">لا توجد إجازات في الأرشيف.</td>
+                  <td colspan="16">لا توجد إجازات في الأرشيف.</td>
                 </tr>
               <?php else: ?>
                 <?php foreach ($archived as $idx => $lv): ?>
@@ -1275,6 +1386,10 @@ while ($row = $res->fetch_assoc()) {
                     <td><?= htmlspecialchars($lv['start_date']) ?></td>
                     <td><?= htmlspecialchars($lv['end_date']) ?></td>
                     <td><?= htmlspecialchars($lv['days_count']) ?></td>
+                    <td><?= htmlspecialchars($lv['payment_amount']) ?></td>
+                    <td class="cell-paid-status">
+                      <?= $lv['is_paid'] ? '<span class="badge bg-success">مدفوع</span>' : '<span class="badge bg-secondary">غير مدفوع</span>' ?>
+                    </td>
                     <td>
                       <?= $lv['is_companion']
                         ? '<span class="badge bg-warning text-dark">مرافق</span>'
@@ -1564,6 +1679,18 @@ while ($row = $res->fetch_assoc()) {
               </div>
               <div class="invalid-feedback">حدد عدد الأيام.</div>
             </div>
+
+            <div class="col-md-3">
+              <label>مبلغ الإجازة (ر.س)</label>
+              <input type="number" step="0.01" name="payment_amount_edit" id="payment_amount_edit" class="form-control" value="0">
+              <div class="invalid-feedback">أدخل المبلغ.</div>
+            </div>
+            <div class="col-md-2 d-flex align-items-center">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" name="is_paid_edit" id="is_paid_edit" value="1">
+                <label class="form-check-label" for="is_paid_edit">مدفوع؟</label>
+              </div>
+            </div>
             <!-- إضافة حقل مرافق في التعديل -->
             <div class="col-md-2">
               <div class="form-check mt-4">
@@ -1596,30 +1723,49 @@ while ($row = $res->fetch_assoc()) {
   </div>
 
   <!-- مكتبات جافاسكربت الضرورية -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // ===== دالة عرض الإشعار (Toast-like) =====
+      // تفعيل DataTables
+      if (window.jQuery && $.fn.DataTable) {
+        const dtOpts = { paging: true, searching: false, info: false, responsive: true,
+          language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json' }
+        };
+        $('#leavesTable').DataTable(dtOpts);
+        $('#archivedTable').DataTable(dtOpts);
+        $('#queriesTable').DataTable(dtOpts);
+        $('#paymentsTable').DataTable(dtOpts);
+      }
+
+      // تنبيه للمدفوعات المتأخرة
+      document.querySelectorAll('#leavesTable tbody tr').forEach(row => {
+        const paid = row.querySelector('.cell-paid-status .badge.bg-success');
+        const createdCell = row.querySelector('.cell-created');
+        if (!paid && createdCell) {
+          const created = new Date(createdCell.textContent.split(' ')[0]);
+          if (Date.now() - created.getTime() > 24 * 3600 * 1000) {
+            showAlert('warning', 'إجازة برمز ' + row.querySelector('.cell-service').textContent + ' لم يتم دفعها بعد مرور يوم');
+          }
+        }
+      });
+      // ===== دالة عرض الإشعار (SweetAlert2) =====
       function showAlert(type, message) {
-        const toastId = 'toast-' + Date.now();
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = `
-        <div id="${toastId}" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000" style="background: var(--toast-bg); color: var(--toast-text); border-radius: var(--border-radius);">
-          <div class="d-flex">
-            <div class="toast-body">
-              ${message}
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="إغلاق"></button>
-          </div>
-        </div>
-      `;
-        document.getElementById('alert-container').append(wrapper.firstElementChild);
-        const toastEl = document.getElementById(toastId);
-        const bsToast = new bootstrap.Toast(toastEl);
-        bsToast.show();
+        if (window.Swal) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            icon: type,
+            title: message,
+          });
+        }
       }
 
       // ===== إظهار/إخفاء مؤشر التحميل =====
@@ -2182,6 +2328,8 @@ while ($row = $res->fetch_assoc()) {
                 <td>${lv.start_date}</td>
                 <td>${lv.end_date}</td>
                 <td>${lv.days_count}</td>
+                <td>${lv.payment_amount}</td>
+                <td class="cell-paid-status">${lv.is_paid ? '<span class="badge bg-success">مدفوع</span>' : '<span class="badge bg-secondary">غير مدفوع</span>'}</td>
                 <td>${lv.is_companion ? '<span class="badge bg-warning text-dark">مرافق</span>' : '<span class="badge bg-info text-dark">أساسي</span>'}</td>
                 <td class="cell-queries-count">${lv.queries_count}</td>
                 <td class="cell-created">${lv.created_at}</td>
@@ -2434,6 +2582,8 @@ while ($row = $res->fetch_assoc()) {
         document.getElementById('start_date_edit').value = cells[7].textContent.trim();
         document.getElementById('end_date_edit').value = cells[8].textContent.trim();
         document.getElementById('days_count_edit').value = cells[9].textContent.trim();
+        document.getElementById('payment_amount_edit').value = cells[10].textContent.trim();
+        document.getElementById('is_paid_edit').checked = cells[11].querySelector('.badge.bg-success') !== null;
 
         // تعبئة بيانات المرافق في التعديل
         const isCBox = document.getElementById('is_companion_edit');
@@ -2441,7 +2591,7 @@ while ($row = $res->fetch_assoc()) {
         const compRelInput = document.getElementById('companion_relation_edit');
         const compName = row.getAttribute('data-comp-name');
         const compRel = row.getAttribute('data-comp-rel');
-        if (cells[10].querySelector('.badge.bg-warning')) {
+        if (cells[12].querySelector('.badge.bg-warning')) {
           isCBox.checked = true;
           document.querySelectorAll('.companion-fields-edit').forEach(el => el.classList.remove('hidden-field'));
           compNameInput.value = compName;
@@ -2521,12 +2671,14 @@ while ($row = $res->fetch_assoc()) {
                 row.children[7].textContent = lv.start_date;
                 row.children[8].textContent = lv.end_date;
                 row.children[9].textContent = lv.days_count;
+                row.children[10].textContent = lv.payment_amount;
+                row.children[11].innerHTML = lv.is_paid ? '<span class="badge bg-success">مدفوع</span>' : '<span class="badge bg-secondary">غير مدفوع</span>';
                 if (lv.is_companion) {
-                  row.children[10].innerHTML = '<span class="badge bg-warning text-dark">مرافق</span>';
+                  row.children[12].innerHTML = '<span class="badge bg-warning text-dark">مرافق</span>';
                   row.setAttribute('data-comp-name', lv.companion_name);
                   row.setAttribute('data-comp-rel', lv.companion_relation);
                 } else {
-                  row.children[10].innerHTML = '<span class="badge bg-info text-dark">أساسي</span>';
+                  row.children[12].innerHTML = '<span class="badge bg-info text-dark">أساسي</span>';
                   row.setAttribute('data-comp-name', '');
                   row.setAttribute('data-comp-rel', '');
                 }
@@ -2639,6 +2791,54 @@ while ($row = $res->fetch_assoc()) {
         printWindow.document.write('</head><body>');
         printWindow.document.write('<h3 class="text-center mt-3">جميع الإجازات المرضية النشطة</h3>');
         printWindow.document.write(document.getElementById('leavesTable').outerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+      });
+
+      // ==== 35.1 jsPDF لتصدير PDF للأرشيف ====
+      document.getElementById('exportArchPDF')?.addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+        doc.text('إجازات مرضية مؤرشفة', 40, 30);
+        doc.autoTable({
+          startY: 50,
+          html: '#archivedTable',
+          styles: { font: 'helvetica', fontSize: 10, halign: 'center' },
+          headStyles: { fillColor: [211, 47, 47] }
+        });
+        doc.save('sick_leaves_archived.pdf');
+      });
+
+      // ==== 36.1 تصدير Excel للأرشيف ====
+      document.getElementById('exportArchExcel')?.addEventListener('click', () => {
+        function downloadCSV(csv, filename) {
+          const csvFile = new Blob([csv], { type: 'text/csv' });
+          const tempLink = document.createElement('a');
+          tempLink.download = filename;
+          tempLink.href = window.URL.createObjectURL(csvFile);
+          tempLink.style.display = 'none';
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink);
+        }
+        const rows = Array.from(document.querySelectorAll('#archivedTable tr'));
+        const csv = rows.map(row => {
+          const cols = Array.from(row.querySelectorAll('th, td')).map(cell => `"${cell.textContent.replace(/"/g, '""')}"`);
+          return cols.join(',');
+        }).join('\n');
+        downloadCSV(csv, 'sick_leaves_archived.csv');
+      });
+
+      // ==== 37.1 طباعة جدول الأرشيف ====
+      document.getElementById('printArchTable')?.addEventListener('click', () => {
+        const printWindow = window.open('', '', 'height=700,width=900');
+        printWindow.document.write('<html dir="rtl"><head><title>طباعة الإجازات المؤرشفة</title>');
+        printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<h3 class="text-center mt-3">جميع الإجازات المرضية المؤرشفة</h3>');
+        printWindow.document.write(document.getElementById('archivedTable').outerHTML);
         printWindow.document.write('</body></html>');
         printWindow.document.close();
         printWindow.focus();
