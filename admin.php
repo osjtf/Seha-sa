@@ -1283,9 +1283,7 @@ while ($row = $res->fetch_assoc()) {
                 </tr>
               <?php endforeach; ?>
               <?php if (empty($leaves)): ?>
-                <tr class="no-results">
-                  <td colspan="16">لا توجد إجازات نشطة حاليًا.</td>
-                </tr>
+                <!-- no rows message handled by DataTables -->
               <?php endif; ?>
             </tbody>
           </table>
@@ -1369,9 +1367,7 @@ while ($row = $res->fetch_assoc()) {
             </thead>
             <tbody>
               <?php if (empty($archived)): ?>
-                <tr class="no-results">
-                  <td colspan="16">لا توجد إجازات في الأرشيف.</td>
-                </tr>
+                <!-- no rows message handled by DataTables -->
               <?php else: ?>
                 <?php foreach ($archived as $idx => $lv): ?>
                   <tr data-id="<?= $lv['id'] ?>" data-comp-name="<?= htmlspecialchars($lv['companion_name']) ?>"
@@ -1472,9 +1468,7 @@ while ($row = $res->fetch_assoc()) {
               </thead>
               <tbody>
                 <?php if (empty($queries)): ?>
-                  <tr class="no-results">
-                    <td colspan="6">لا توجد سجلات للاستعلام.</td>
-                  </tr>
+                  <!-- no rows message handled by DataTables -->
                 <?php else: ?>
                   <?php foreach ($queries as $idx => $q): ?>
                     <tr data-id="<?= $q['qid'] ?>">
@@ -1536,9 +1530,7 @@ while ($row = $res->fetch_assoc()) {
                   </tr>
                 <?php endforeach; ?>
                 <?php if (empty($doctors)): ?>
-                  <tr class="no-results">
-                    <td colspan="4">لا يوجد أطباء حاليًا.</td>
-                  </tr>
+                  <!-- no rows message handled by DataTables -->
                 <?php endif; ?>
               </tbody>
             </table>
@@ -1604,9 +1596,7 @@ while ($row = $res->fetch_assoc()) {
                   </tr>
                 <?php endforeach; ?>
                 <?php if (empty($patients)): ?>
-                  <tr class="no-results">
-                    <td colspan="4">لا يوجد مرضى حاليًا.</td>
-                  </tr>
+                  <!-- no rows message handled by DataTables -->
                 <?php endif; ?>
               </tbody>
             </table>
@@ -2159,11 +2149,6 @@ while ($row = $res->fetch_assoc()) {
             if (match) anyVisible = true;
           });
           if (!anyVisible) {
-            const colCount = table.querySelectorAll('thead th').length;
-            const noRow = document.createElement('tr');
-            noRow.classList.add(noResultsClass);
-            noRow.innerHTML = `<td colspan="${colCount}" class="no-results">لم يتم العثور على نتائج مطابقة.</td>`;
-            tbody.append(noRow);
             showAlert('warning', 'لا توجد نتائج مطابقة');
           } else {
             showAlert('success', 'تم العثور على نتائج');
@@ -2559,8 +2544,6 @@ while ($row = $res->fetch_assoc()) {
               if (res.success) {
                 showAlert('danger', res.message);
                 document.querySelectorAll('#archivedTable tbody tr').forEach(r => r.remove());
-                const colCount = document.querySelectorAll('#archivedTable thead th').length;
-                document.querySelector('#archivedTable tbody').innerHTML = `<tr class="no-results"><td colspan="${colCount}">لا توجد إجازات في الأرشيف.</td></tr>`;
                 reIndexTable('archivedTable');
               }
             });
@@ -2731,9 +2714,6 @@ while ($row = $res->fetch_assoc()) {
               if (data.success) {
                 showAlert('success', data.message);
                 document.querySelectorAll('#queriesTable tbody tr[data-id]').forEach(r => r.remove());
-                const tbodyQ = document.querySelector('#queriesTable tbody');
-                const colCountQ = document.querySelectorAll('#queriesTable thead th').length;
-                tbodyQ.innerHTML = `<tr class="no-results"><td colspan="${colCountQ}">لا توجد سجلات للاستعلام.</td></tr>`;
                 reIndexTable('queriesTable');
               }
             });
@@ -2968,11 +2948,6 @@ while ($row = $res->fetch_assoc()) {
         });
 
         if (!anyVisible) {
-          const colCount = table.querySelectorAll('thead th').length;
-          const noRow = document.createElement('tr');
-          noRow.classList.add(noResultsClass);
-          noRow.innerHTML = `<td colspan="${colCount}" class="no-results">لا توجد نتائج مطابقة.</td>`;
-          tbody.append(noRow);
           showAlert('warning', 'لا توجد نتائج مطابقة للفلترة');
         } else {
           showAlert('success', 'تمت عملية الفلترة');
