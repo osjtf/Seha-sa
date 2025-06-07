@@ -2758,8 +2758,6 @@ foreach ($queries as $q) {
               showAlert('success', data.message);
               const lv = data.leave;
               const tbody = document.querySelector('#leavesTable tbody');
-              const noRow = tbody.querySelector('.no-results');
-              if (noRow) noRow.remove();
               const newRow = document.createElement('tr');
               newRow.setAttribute('data-id', lv.id);
               newRow.setAttribute('data-comp-name', lv.companion_name);
