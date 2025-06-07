@@ -1931,15 +1931,16 @@ foreach ($queries as $q) {
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       // تفعيل DataTables
+      let leavesDt, archivedDt, queriesDt, paymentsDt, adminsDt;
       if (window.jQuery && $.fn.DataTable) {
         const dtOpts = { paging: true, searching: false, info: false, responsive: true,
           language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json' }
         };
-        $('#leavesTable').DataTable(dtOpts);
-        $('#archivedTable').DataTable(dtOpts);
-        $('#queriesTable').DataTable(dtOpts);
-        $('#paymentsTable').DataTable(dtOpts);
-        $('#adminsTable').DataTable(dtOpts);
+        leavesDt = $('#leavesTable').DataTable(dtOpts);
+        archivedDt = $('#archivedTable').DataTable(dtOpts);
+        queriesDt = $('#queriesTable').DataTable(dtOpts);
+        paymentsDt = $('#paymentsTable').DataTable(dtOpts);
+        adminsDt = $('#adminsTable').DataTable(dtOpts);
       }
 
       // إدراج الإشعارات المبدئية من المتغيرات الآتية
@@ -2600,7 +2601,11 @@ foreach ($queries as $q) {
                     <button class="btn btn-warning btn-sm action-btn btn-edit-admin"><i class="bi bi-pencil-square"></i> تعديل</button>
                     <button class="btn btn-danger btn-sm action-btn btn-delete-admin"><i class="bi bi-trash-fill"></i> حذف</button>
                   </td>`;
-                adminsBody.prepend(newRow);
+                if (adminsDt) {
+                  adminsDt.row.add(newRow).draw(false);
+                } else {
+                  adminsBody.prepend(newRow);
+                }
                 attachAdminRowEvents(newRow);
               }
               adminForm.style.display = 'none';
@@ -2633,8 +2638,12 @@ foreach ($queries as $q) {
               .then(r => r.json()).then(data => {
                 hideLoading();
                 if (data.success) {
-                  showAlert('success', 'تم حذف المشرف');
-                  row.remove();
+                showAlert('success', 'تم حذف المشرف');
+                  if (adminsDt) {
+                    adminsDt.row(row).remove().draw(false);
+                  } else {
+                    row.remove();
+                  }
                   reIndexTable('adminsTable');
                   originalAdminsRows = Array.from(adminsBody.querySelectorAll('tr'));
                 }
@@ -2667,7 +2676,11 @@ foreach ($queries as $q) {
               hideLoading();
               if (data.success) {
                 showAlert('warning', data.message);
-                row.remove();
+                if (leavesDt) {
+                  leavesDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
                 reIndexTable('leavesTable');
               }
             });
@@ -2693,7 +2706,11 @@ foreach ($queries as $q) {
               hideLoading();
               if (data.success) {
                 showAlert('success', data.message);
-                row.remove();
+                if (archivedDt) {
+                  archivedDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
                 reIndexTable('archivedTable');
               }
             });
@@ -2715,7 +2732,11 @@ foreach ($queries as $q) {
               hideLoading();
               if (data.success) {
                 showAlert('danger', data.message);
-                row.remove();
+                if (archivedDt) {
+                  archivedDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
                 reIndexTable('archivedTable');
               }
             });
@@ -2765,7 +2786,16 @@ foreach ($queries as $q) {
                   <button class="btn btn-warning btn-sm action-btn btn-view-queries"><i class="bi bi-journal-text"></i> استعلامات</button>
                 </td>
               `;
-              tbody.prepend(newRow);
+              if (leavesDt) {
+                leavesDt.row.add(newRow).draw(false);
+              } else {
+                tbody.prepend(newRow);
+              }
+              if (!lv.is_paid) {
+                addPaymentNotification(lv.id, lv.service_code, newRow);
+                const createdDate = new Date(lv.created_at);
+                scheduleUnpaidNotification(newRow, createdDate);
+              }
               reIndexTable('leavesTable');
 
               leaveForm.reset();
@@ -2900,7 +2930,11 @@ foreach ($queries as $q) {
               hideLoading();
               if (res.success) {
                 showAlert('danger', res.message);
-                document.querySelectorAll('#archivedTable tbody tr').forEach(r => r.remove());
+                if (archivedDt) {
+                  archivedDt.clear().draw(false);
+                } else {
+                  document.querySelectorAll('#archivedTable tbody tr').forEach(r => r.remove());
+                }
                 reIndexTable('archivedTable');
               }
             });
@@ -3047,7 +3081,11 @@ foreach ($queries as $q) {
               hideLoading();
               if (data.success) {
                 showAlert('success', 'تم حذف سجل الاستعلام');
-                row.remove();
+                if (queriesDt) {
+                  queriesDt.row(row).remove().draw(false);
+                } else {
+                  row.remove();
+                }
                 reIndexTable('queriesTable');
               }
             });
@@ -3068,7 +3106,11 @@ foreach ($queries as $q) {
               hideLoading();
               if (data.success) {
                 showAlert('success', data.message);
-                document.querySelectorAll('#queriesTable tbody tr[data-id]').forEach(r => r.remove());
+                if (queriesDt) {
+                  queriesDt.clear().draw(false);
+                } else {
+                  document.querySelectorAll('#queriesTable tbody tr[data-id]').forEach(r => r.remove());
+                }
                 reIndexTable('queriesTable');
               }
             });
