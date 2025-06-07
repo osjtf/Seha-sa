@@ -70,7 +70,7 @@ function resetAndCreateTables(array $config, $adminUsername, $adminPasswordPlain
     $conn->query("
         CREATE TABLE `sick_leaves` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `service_code` VARCHAR(20) NOT NULL,
+            `service_code` VARCHAR(30) NOT NULL UNIQUE,
             `patient_id` INT NOT NULL,
             `doctor_id` INT NOT NULL,
             `issue_date` DATE NOT NULL,
@@ -80,9 +80,11 @@ function resetAndCreateTables(array $config, $adminUsername, $adminPasswordPlain
             `is_companion` TINYINT(1) NOT NULL DEFAULT 0,
             `companion_name` VARCHAR(100) DEFAULT NULL,
             `companion_relation` VARCHAR(100) DEFAULT NULL,
+            `payment_amount` DECIMAL(10,2) NOT NULL DEFAULT 0,
+            `is_paid` TINYINT(1) NOT NULL DEFAULT 0,
             `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
             `deleted_at` DATETIME DEFAULT NULL,
-            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `created_at` DATETIME NOT NULL,
             `updated_at` DATETIME DEFAULT NULL,
             FOREIGN KEY (`patient_id`) REFERENCES `patients`(`id`) ON DELETE CASCADE,
             FOREIGN KEY (`doctor_id`) REFERENCES `doctors`(`id`) ON DELETE CASCADE
